@@ -11,22 +11,26 @@ import javax.swing.border.EmptyBorder;
  */
 public class Texty extends JFrame {
     
+    // Access to Model and Controller (event)
+    private final TextyModel textyModel;
+    private final TextyEvent textyEvent;
+    
     private static final int JPANEL_WIDTH_INT = 700;
     private static final int JPANEL_HEIGHT_INT = 800;
     
+    protected static Texty.SaveAnywayWin saveAnywayWin;
     protected static Texty.RenameFileWin renameWin;
     protected static Texty.OpenFileWin openWin;
     protected static Texty.saveLocationWin saveWin;
     
-    private final TextyModel textyModel;
-    private final TextyEvent textyEvent;
     private final JPanel toolbarPanel = new JPanel();
     private final JPanel textareaPanel = new JPanel();
     private final JToolBar toolbar = new JToolBar();
     JTextArea textarea = new JTextArea();
     private final JScrollPane scrollpane = new JScrollPane(textarea);
-    private final JButton openBtn = new JButton("Open");
     private final JButton saveBtn = new JButton("Save");
+    private final JButton openBtn = new JButton("Open");
+    private final JButton newBtn = new JButton("New");
     private final JButton renameBtn = new JButton("Rename");
     
     public Texty(String file, TextyModel model) {
@@ -49,8 +53,14 @@ public class Texty extends JFrame {
         toolbarPanel.setLayout(new BorderLayout());
         textareaPanel.setLayout(new BorderLayout());
         
-        toolbar.add(openBtn);
+        saveBtn.setActionCommand("InitSave");
+        openBtn.setActionCommand("InitOpen");
+        newBtn.setActionCommand("InitNew");
+        renameBtn.setActionCommand("InitRename");
+        
         toolbar.add(saveBtn);
+        toolbar.add(openBtn);
+        toolbar.add(newBtn);
         toolbar.add(renameBtn);
         toolbarPanel.add(toolbar);
         textareaPanel.add(scrollpane);
@@ -60,9 +70,10 @@ public class Texty extends JFrame {
         setVisible(true);
         textarea.requestFocusInWindow();
         
-        openBtn.addActionListener(textyEvent);
-        saveBtn.addActionListener(textyEvent);
-        renameBtn.addActionListener(textyEvent);    
+        saveBtn.addActionListener(textyEvent.new SaveEvent());
+        openBtn.addActionListener(textyEvent.new OpenEvent());
+        newBtn.addActionListener(textyEvent.new NewEvent());
+        renameBtn.addActionListener(textyEvent.new RenameEvent());    
         
         addWindowListener(new WindowAdapter() {
             @Override
@@ -77,6 +88,90 @@ public class Texty extends JFrame {
         });
         
     }
+    
+    protected class saveLocationWin extends JFrame {
+        private static final int SAVEWINDOW_JPANEL_WIDTH = 440;
+        private static final int SAVEWINDOW_JPANEL_HEIGHT = 80;
+        private static final int SAVEWINDOW_VERTICAL_PADDING = 10;
+        
+        private final JPanel savePanel = new JPanel();
+        private final JTextField filepathField;
+        private final JTextField filenameField;
+        private final JButton saveBtn = new JButton("Save");
+        
+        protected saveLocationWin() {
+            super("Save New File");
+            
+            String currentDirectory = TextyModel.globalFilepath;
+            String currentFilename = textyModel.getFilename();
+            
+            filepathField = new JTextField(currentDirectory);
+            filepathField.setMargin(new Insets(0, 4, 0, 4));
+            filenameField = new JTextField(currentFilename);
+            filenameField.setMargin(new Insets(0, 4, 0, 4));
+            
+            setSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH + 60, SAVEWINDOW_JPANEL_HEIGHT + 50));
+            setLocationRelativeTo(null);
+            savePanel.setPreferredSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH, SAVEWINDOW_JPANEL_HEIGHT));
+            filepathField.setPreferredSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH - 100, SAVEWINDOW_JPANEL_HEIGHT / 2 - SAVEWINDOW_VERTICAL_PADDING));
+            filenameField.setPreferredSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH - 300, SAVEWINDOW_JPANEL_HEIGHT / 2 - SAVEWINDOW_VERTICAL_PADDING));
+            saveBtn.setPreferredSize(new Dimension(saveBtn.getPreferredSize().width, SAVEWINDOW_JPANEL_HEIGHT / 2 - SAVEWINDOW_VERTICAL_PADDING - 2));
+            
+            saveBtn.setActionCommand("SaveNew");
+            
+            savePanel.add(filepathField);
+            savePanel.add(filenameField);
+            savePanel.add(saveBtn);
+            add(savePanel, BorderLayout.CENTER);
+
+            setVisible(true);
+
+            filenameField.requestFocusInWindow();
+            
+            saveBtn.addActionListener(textyEvent.new SaveEvent());
+        }
+        
+        protected String[] getFileLocation() {
+            String[] fileLocation = new String[]{filepathField.getText(), filenameField.getText()};
+            return fileLocation;
+        }
+        
+    }
+
+    protected class SaveAnywayWin extends JFrame {
+        
+        private static final int SAVEANYWAY_WINDOW_JPANEL_WIDTH = 300;
+        private static final int SAVEANYWAY_WINDOW_JPANEL_HEIGHT = 60;
+        
+        boolean saveAnyway;
+        
+        String filename = textyModel.getFilename();
+        private final JPanel saveAnywayPanel = new JPanel();
+        private final JLabel alreadyExists = new JLabel("File: " + filename + " already exists. Save anyway?");
+        private final JButton saveAnywayBtn = new JButton("Save Anyway");
+        private final JButton cancelBtn = new JButton("Cancel");
+        
+        protected SaveAnywayWin() {
+            super("File Already Exists");
+            
+            setSize(new Dimension(SAVEANYWAY_WINDOW_JPANEL_WIDTH + 60, SAVEANYWAY_WINDOW_JPANEL_HEIGHT + 50));
+            setLocationRelativeTo(null);
+            
+            saveAnywayBtn.setActionCommand("SaveAnyway");
+            cancelBtn.setActionCommand("CancelSaveAnyway");
+            
+            saveAnywayPanel.add(alreadyExists);
+            saveAnywayPanel.add(saveAnywayBtn);
+            saveAnywayPanel.add(cancelBtn);
+            add(saveAnywayPanel, BorderLayout.CENTER);
+
+            setVisible(true);
+            
+            saveAnywayBtn.addActionListener(textyEvent.new SaveEvent());
+            cancelBtn.addActionListener(textyEvent.new SaveEvent());
+            
+        }
+    }
 
     protected class OpenFileWin extends JFrame {
         
@@ -87,7 +182,7 @@ public class Texty extends JFrame {
         private final JPanel openPanel = new JPanel();
         private final JTextField filepathField;
         private final JTextField filenameField;
-        private final JButton openBtn = new JButton("Open File");
+        private final JButton openBtn = new JButton("Open");
         
         protected OpenFileWin() {
             super("Open File");
@@ -115,7 +210,7 @@ public class Texty extends JFrame {
 
             filenameField.requestFocusInWindow();
             
-            openBtn.addActionListener(textyEvent);
+            openBtn.addActionListener(textyEvent.new OpenEvent());
             
         }
         
@@ -124,53 +219,6 @@ public class Texty extends JFrame {
             return fileLocation;
         }
 
-    }
-    
-    protected class saveLocationWin extends JFrame {
-        private static final int SAVEWINDOW_JPANEL_WIDTH = 440;
-        private static final int SAVEWINDOW_JPANEL_HEIGHT = 80;
-        private static final int SAVEWINDOW_VERTICAL_PADDING = 10;
-        
-        private final JPanel savePanel = new JPanel();
-        private final JTextField filepathField;
-        private final JTextField filenameField;
-        private final JButton saveBtn = new JButton("Save File");
-        
-        protected saveLocationWin() {
-            super("Save New File");
-            
-            String currentDirectory = TextyModel.globalFilepath;
-            String currentFilename = textyModel.getFilename();
-            
-            filepathField = new JTextField(currentDirectory);
-            filepathField.setMargin(new Insets(0, 4, 0, 4));
-            filenameField = new JTextField(currentFilename);
-            filenameField.setMargin(new Insets(0, 4, 0, 4));
-            
-            setSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH + 60, SAVEWINDOW_JPANEL_HEIGHT + 50));
-            setLocationRelativeTo(null);
-            savePanel.setPreferredSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH, SAVEWINDOW_JPANEL_HEIGHT));
-            filepathField.setPreferredSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH - 100, SAVEWINDOW_JPANEL_HEIGHT / 2 - SAVEWINDOW_VERTICAL_PADDING));
-            filenameField.setPreferredSize(new Dimension(SAVEWINDOW_JPANEL_WIDTH - 300, SAVEWINDOW_JPANEL_HEIGHT / 2 - SAVEWINDOW_VERTICAL_PADDING));
-            saveBtn.setPreferredSize(new Dimension(saveBtn.getPreferredSize().width, SAVEWINDOW_JPANEL_HEIGHT / 2 - SAVEWINDOW_VERTICAL_PADDING - 2));
-            
-            savePanel.add(filepathField);
-            savePanel.add(filenameField);
-            savePanel.add(saveBtn);
-            add(savePanel, BorderLayout.CENTER);
-
-            setVisible(true);
-
-            filenameField.requestFocusInWindow();
-            
-            saveBtn.addActionListener(textyEvent);
-        }
-        
-        protected String[] getFileLocation() {
-            String[] fileLocation = new String[]{filepathField.getText(), filenameField.getText()};
-            return fileLocation;
-        }
-        
     }
     
     protected class RenameFileWin extends JFrame {
@@ -203,7 +251,7 @@ public class Texty extends JFrame {
 
             renameField.requestFocusInWindow();
             
-            saveRenameBtn.addActionListener(textyEvent);
+            saveRenameBtn.addActionListener(textyEvent.new SaveEvent());
             
         }
         
@@ -217,7 +265,7 @@ public class Texty extends JFrame {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        TextyModel textyModel = new TextyModel();
+        TextyModel textyEditor = new TextyModel();
     }
     
 }

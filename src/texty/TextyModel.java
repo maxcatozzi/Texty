@@ -6,21 +6,26 @@ package texty;
  */
 public class TextyModel {
     
+    // Access to View
+    protected Texty textyView;
+    
     public static final String DEFAULT_FILEPATH = "C:\\Users\\Steve\\Documents\\Work\\Java\\Texty\\";
     public static final String DEFAULT_FILENAME = "New Document.txt";
     public static String globalFilepath = DEFAULT_FILEPATH;
     private static int instanceCount = 0;
     
-    protected Texty textyView;
     private String filepath;
     private String filename;
     protected boolean fileIsNew;
+    protected boolean saveAnyway;
     
     public TextyModel() {
-        TextyModel textyModel = new TextyModel(new String[]{DEFAULT_FILEPATH,DEFAULT_FILENAME}, true);
+        this.saveAnyway = false;
+        TextyModel textyEditor = new TextyModel(new String[]{DEFAULT_FILEPATH,DEFAULT_FILENAME}, true);
     }
     
     public TextyModel(String[] fileLocation, boolean newFile) {
+        this.saveAnyway = false;
         fileIsNew = newFile;
         filepath = fileLocation[0];
         filename = fileLocation[1];
@@ -28,6 +33,7 @@ public class TextyModel {
         instanceCount++;
     }
     
+    // Getters and setters
     public static void removeInstance() {
         instanceCount--;
     }
