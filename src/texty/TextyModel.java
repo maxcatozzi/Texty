@@ -2,7 +2,7 @@ package texty;
 
 /**
  *
- * @author Steve
+ * @author Steve Karwacki
  */
 public class TextyModel {
     

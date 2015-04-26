@@ -7,7 +7,7 @@ import javax.swing.border.EmptyBorder;
 
 /**
  *
- * @author Steve
+ * @author Steve Karwacki
  */
 public class Texty extends JFrame {
     
@@ -15,14 +15,14 @@ public class Texty extends JFrame {
     private final TextyModel textyModel;
     private final TextyEvent textyEvent;
     
+    // Access to gui windows
+    protected Texty.SaveAnywayWin saveAnywayWin;
+    protected Texty.RenameFileWin renameWin;
+    protected Texty.OpenFileWin openWin;
+    protected Texty.saveLocationWin saveWin;
+    
     private static final int JPANEL_WIDTH_INT = 700;
     private static final int JPANEL_HEIGHT_INT = 800;
-    
-    protected static Texty.SaveAnywayWin saveAnywayWin;
-    protected static Texty.RenameFileWin renameWin;
-    protected static Texty.OpenFileWin openWin;
-    protected static Texty.saveLocationWin saveWin;
-    
     private final JPanel toolbarPanel = new JPanel();
     private final JPanel textareaPanel = new JPanel();
     private final JToolBar toolbar = new JToolBar();
@@ -78,11 +78,11 @@ public class Texty extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if(TextyModel.getInstanceCount() > 1) {
+                if(TextyModel.getInstanceCount() > 1) { // check if last Texty instance
                     TextyModel.removeInstance();
                 }
                 else {
-                    System.exit(0);
+                    System.exit(0); // if last instance, close application
                 }
             }
         });
@@ -129,6 +129,14 @@ public class Texty extends JFrame {
             filenameField.requestFocusInWindow();
             
             saveBtn.addActionListener(textyEvent.new SaveEvent());
+            
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    saveWin.dispose(); // remove resource
+                }
+            });
+            
         }
         
         protected String[] getFileLocation() {
@@ -169,6 +177,13 @@ public class Texty extends JFrame {
             
             saveAnywayBtn.addActionListener(textyEvent.new SaveEvent());
             cancelBtn.addActionListener(textyEvent.new SaveEvent());
+            
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    saveAnywayWin.dispose(); // remove resource
+                }
+            });
             
         }
     }
@@ -212,6 +227,13 @@ public class Texty extends JFrame {
             
             openBtn.addActionListener(textyEvent.new OpenEvent());
             
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    openWin.dispose(); // remove resource
+                }
+            });
+            
         }
         
         protected String[] getFileLocation() {
@@ -228,7 +250,7 @@ public class Texty extends JFrame {
         
         private final JPanel renamePanel = new JPanel();
         private final JTextField renameField;
-        private final JButton saveRenameBtn = new JButton("Rename File");
+        private final JButton saveRenameBtn = new JButton("Rename");
         
         protected RenameFileWin() {
             super("Rename File");
@@ -251,7 +273,14 @@ public class Texty extends JFrame {
 
             renameField.requestFocusInWindow();
             
-            saveRenameBtn.addActionListener(textyEvent.new SaveEvent());
+            saveRenameBtn.addActionListener(textyEvent.new RenameEvent());
+            
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    renameWin.dispose(); // remove resource
+                }
+            });
             
         }
         

@@ -22,14 +22,10 @@ public class TextyEvent {
     // Access to Model and View
     TextyModel textyModel;
     Texty textyView;
-    // controls for waiting for user input
-    boolean waitForInput = false;
-    final Thread waitThread;
     
     public TextyEvent(Texty gui, TextyModel model) {
-        textyView = gui;
+        textyView = gui; 
         textyModel = model;
-        waitThread = new Thread();
     }
     
     // Event Handlers
@@ -43,21 +39,16 @@ public class TextyEvent {
                     saveFile();
                     break;
                 case "SaveNew":
-                    fileLocation = Texty.saveWin.getFileLocation();
+                    fileLocation = textyView.saveWin.getFileLocation();
                     saveNewFile(fileLocation);
                     break;
                 case "SaveAnyway":
-                    textyModel.saveAnyway = true;
-                    waitForInput = false;
-                    synchronized(waitThread) {
-                        waitThread.notify();
-                    }
+                    fileLocation = textyView.saveWin.getFileLocation();
+                    saveFileAnyway(fileLocation);
                     break;
                 case "CancelSaveAnyway":
-                    waitForInput = false;
-                    synchronized(waitThread) {
-                        waitThread.notify();
-                    }
+                    textyView.saveAnywayWin.dispatchEvent(new WindowEvent(textyView.saveAnywayWin, WindowEvent.WINDOW_CLOSING));
+                    textyView.saveAnywayWin.dispose();
                     break;
             }
         }
@@ -70,10 +61,10 @@ public class TextyEvent {
             String[] fileLocation;
             switch(command){
                 case "InitOpen":
-                    Texty.openWin = textyView.new OpenFileWin();
+                    textyView.openWin = textyView.new OpenFileWin();
                     break;
                 case "Open":
-                    fileLocation = Texty.openWin.getFileLocation();
+                    fileLocation = textyView.openWin.getFileLocation();
                     openFile(fileLocation);
                     break;
             }
@@ -99,10 +90,10 @@ public class TextyEvent {
             String newFilename;
             switch(command){
                 case "InitRename":
-                    Texty.renameWin = textyView.new RenameFileWin();
+                    textyView.renameWin = textyView.new RenameFileWin();
                     break;
                 case "Rename":
-                    newFilename = Texty.renameWin.getNewFilename();
+                    newFilename = textyView.renameWin.getNewFilename();
                     renameFile(newFilename);
                     break;
             }
@@ -130,8 +121,8 @@ public class TextyEvent {
                 content += text;
             }
 
-            Texty.openWin.dispatchEvent(new WindowEvent(Texty.openWin, WindowEvent.WINDOW_CLOSING));
-            Texty.openWin.dispose();
+            textyView.openWin.dispatchEvent(new WindowEvent(textyView.openWin, WindowEvent.WINDOW_CLOSING));
+            textyView.openWin.dispose();
             TextyModel.globalFilepath = filepath;
 
             TextyModel textyEditor = new TextyModel(fileLocation, false);
@@ -144,60 +135,11 @@ public class TextyEvent {
         }
     }
 
-    private void saveNewFile(String[] fileLocation) {
-        try {
-            boolean continueSave = true;
-            String filepath = fileLocation[0];
-            String filename = fileLocation[1];
-            String fullFilepath = filepath + filename;
-            textyModel.setFilepath(filepath);
-            textyModel.setFilename(filename);
-
-            File file = new File(fullFilepath);
-            
-            /*if(file.exists()) { // breaks
-                continueSave = saveFileAnyway();
-            }*/
-
-            if(continueSave) {
-                textyModel.fileIsNew = false;
-                Texty.saveWin.setVisible(false);
-
-                if(saveFile()) {
-                    textyView.setTitle("Texty - " + filename);
-                    Texty.saveWin.dispatchEvent(new WindowEvent(Texty.saveWin, WindowEvent.WINDOW_CLOSING));
-                    Texty.saveWin.dispose();
-                    TextyModel.globalFilepath = filepath;
-                }
-                else {
-                    Texty.saveWin.setVisible(true);
-                }
-            }
-
-        } catch(Exception e) {
-            JOptionPane.showMessageDialog(textyView, "File could not be saved!\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private boolean saveFileAnyway() { 
-        Texty.SaveAnywayWin saveAnywayWin = textyView.new SaveAnywayWin();
-        waitForInput = true;
-        try {
-            synchronized(waitThread) { // does not work
-                while(waitForInput) {
-                    waitThread.wait();
-                }
-            }
-            } catch (InterruptedException e) {
-            }
-        return textyModel.saveAnyway;
-    }
-
     public boolean saveFile() { 
         String filepath;
         boolean saveSuccess = false;
         if(textyModel.fileIsNew) {
-            Texty.saveWin = textyView.new saveLocationWin();
+            textyView.saveWin = textyView.new saveLocationWin();
         }
         else {
 
@@ -225,14 +167,74 @@ public class TextyEvent {
         }
         return saveSuccess;
     }
+    
+    private void saveNewFile(String[] fileLocation) {
+        try {
+            String filepath = fileLocation[0];
+            String filename = fileLocation[1];
+            String fullFilepath = filepath + filename;
+
+            File file = new File(fullFilepath);
+            
+            if(file.exists()) {
+                textyView.saveAnywayWin = textyView.new SaveAnywayWin();
+            }
+            else {
+                textyModel.setFilepath(filepath);
+                textyModel.setFilename(filename);
+                textyModel.fileIsNew = false;
+                textyView.saveWin.setVisible(false);
+
+                if(saveFile()) {
+                    textyView.setTitle("Texty - " + filename);
+                    textyView.saveWin.dispatchEvent(new WindowEvent(textyView.saveWin, WindowEvent.WINDOW_CLOSING));
+                    textyView.saveWin.dispose();
+                    TextyModel.globalFilepath = filepath;
+                }
+                else {
+                    textyView.saveWin.setVisible(true);
+                }
+            }
+
+        } catch(Exception e) {
+        }
+    }
+
+    private void saveFileAnyway(String[] fileLocation) { 
+        try {
+            String filepath = fileLocation[0];
+            String filename = fileLocation[1];
+            textyModel.setFilepath(filepath);
+            textyModel.setFilename(filename);
+            textyModel.fileIsNew = false;
+            
+            textyView.saveAnywayWin.setVisible(false);
+            textyView.saveWin.setVisible(false);
+            
+            if(saveFile()) {
+                textyView.saveAnywayWin.dispatchEvent(new WindowEvent(textyView.saveAnywayWin, WindowEvent.WINDOW_CLOSING));
+                textyView.saveAnywayWin.dispose();
+                textyView.saveWin.dispatchEvent(new WindowEvent(textyView.saveWin, WindowEvent.WINDOW_CLOSING));
+                textyView.saveWin.dispose();
+                TextyModel.globalFilepath = filepath;
+            }
+            else {
+                textyView.saveAnywayWin.setVisible(true);
+                textyView.saveWin.setVisible(true);
+            }
+            
+        } catch(Exception e) {
+        }
+    }
 
     private void renameFile(String filename) {
         try {
             textyModel.setFilename(filename);
             textyModel.fileIsNew = true;
             textyView.setTitle("Texty - " + filename);
-            Texty.renameWin.dispatchEvent(new WindowEvent(Texty.renameWin, WindowEvent.WINDOW_CLOSING));
-            Texty.renameWin.dispose();
+            
+            textyView.renameWin.dispatchEvent(new WindowEvent(textyView.renameWin, WindowEvent.WINDOW_CLOSING));
+            textyView.renameWin.dispose();
         } catch(Exception e) {
             JOptionPane.showMessageDialog(textyView, "File could not be renamed!\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
