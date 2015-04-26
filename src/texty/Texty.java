@@ -133,7 +133,7 @@ public class Texty extends JFrame {
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    saveWin.dispose(); // remove resource
+                    TextyHelper.closeWindow(saveWin); // remove resource
                 }
             });
             
@@ -181,7 +181,7 @@ public class Texty extends JFrame {
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    saveAnywayWin.dispose(); // remove resource
+                    TextyHelper.closeWindow(saveAnywayWin); // remove resource
                 }
             });
             
@@ -230,7 +230,7 @@ public class Texty extends JFrame {
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    openWin.dispose(); // remove resource
+                    TextyHelper.closeWindow(openWin); // remove resource
                 }
             });
             
@@ -278,7 +278,7 @@ public class Texty extends JFrame {
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    renameWin.dispose(); // remove resource
+                    TextyHelper.closeWindow(renameWin); // remove resource
                 }
             });
             

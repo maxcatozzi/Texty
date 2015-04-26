@@ -55,10 +55,10 @@ public class TextyModel {
     }
     
     protected void setFilename(String newFilename) throws Exception {
-        if(TextyEvent.containsRegxChars(newFilename,"[:\\\\/*?|<>]")) {
+        if(TextyHelper.containsRegxChars(newFilename,"[:\\\\/*?|<>]")) {
             throw new Exception("Illegal Filename: filenames may not contain the following characters :, \\, \\/, *, ?, |, <, or >");
         }
-        else if(TextyEvent.containsRegxChars(newFilename,"[.]\\w+")){
+        else if(TextyHelper.containsRegxChars(newFilename,"[.]\\w+")){
             filename = newFilename;
         }
         else {

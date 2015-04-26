@@ -2,15 +2,12 @@ package texty;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 
 /**
@@ -47,8 +44,7 @@ public class TextyEvent {
                     saveFileAnyway(fileLocation);
                     break;
                 case "CancelSaveAnyway":
-                    textyView.saveAnywayWin.dispatchEvent(new WindowEvent(textyView.saveAnywayWin, WindowEvent.WINDOW_CLOSING));
-                    textyView.saveAnywayWin.dispose();
+                    TextyHelper.closeWindow(textyView.saveAnywayWin); // remove resource
                     break;
             }
         }
@@ -100,13 +96,6 @@ public class TextyEvent {
         }
     }
 
-    // Helper methods
-    public static boolean containsRegxChars(String haystack, String needle) {
-        Pattern pattern = Pattern.compile(needle);
-        Matcher matcher = pattern.matcher(haystack);
-        return matcher.find();
-    }
-
     // Body of methods
     private void openFile(String[] fileLocation) {
         String filepath = fileLocation[0];
@@ -121,8 +110,7 @@ public class TextyEvent {
                 content += text;
             }
 
-            textyView.openWin.dispatchEvent(new WindowEvent(textyView.openWin, WindowEvent.WINDOW_CLOSING));
-            textyView.openWin.dispose();
+            TextyHelper.closeWindow(textyView.openWin); // remove resource
             TextyModel.globalFilepath = filepath;
 
             TextyModel textyEditor = new TextyModel(fileLocation, false);
@@ -187,8 +175,7 @@ public class TextyEvent {
 
                 if(saveFile()) {
                     textyView.setTitle("Texty - " + filename);
-                    textyView.saveWin.dispatchEvent(new WindowEvent(textyView.saveWin, WindowEvent.WINDOW_CLOSING));
-                    textyView.saveWin.dispose();
+                    TextyHelper.closeWindow(textyView.saveWin); // remove resource
                     TextyModel.globalFilepath = filepath;
                 }
                 else {
@@ -212,10 +199,8 @@ public class TextyEvent {
             textyView.saveWin.setVisible(false);
             
             if(saveFile()) {
-                textyView.saveAnywayWin.dispatchEvent(new WindowEvent(textyView.saveAnywayWin, WindowEvent.WINDOW_CLOSING));
-                textyView.saveAnywayWin.dispose();
-                textyView.saveWin.dispatchEvent(new WindowEvent(textyView.saveWin, WindowEvent.WINDOW_CLOSING));
-                textyView.saveWin.dispose();
+                TextyHelper.closeWindow(textyView.saveAnywayWin); // remove resource
+                TextyHelper.closeWindow(textyView.saveWin); // remove resource
                 TextyModel.globalFilepath = filepath;
             }
             else {
@@ -233,8 +218,7 @@ public class TextyEvent {
             textyModel.fileIsNew = true;
             textyView.setTitle("Texty - " + filename);
             
-            textyView.renameWin.dispatchEvent(new WindowEvent(textyView.renameWin, WindowEvent.WINDOW_CLOSING));
-            textyView.renameWin.dispose();
+            TextyHelper.closeWindow(textyView.renameWin); // remove resource
         } catch(Exception e) {
             JOptionPane.showMessageDialog(textyView, "File could not be renamed!\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
