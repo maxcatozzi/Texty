@@ -21,17 +21,26 @@ public class Texty extends JFrame {
     protected Texty.OpenFileWin openWin;
     protected Texty.saveLocationWin saveWin;
     
-    private static final int JPANEL_WIDTH_INT = 700;
-    private static final int JPANEL_HEIGHT_INT = 800;
+    // Menu Bar
+    JMenuBar menuBar = new JMenuBar();
+    JMenu fileMenu = new JMenu("File");
+    private final JSeparator sep = new JSeparator();  
+    private final JMenuItem newMenuBtn = new JMenuItem("New");
+    private final JMenuItem openMenuBtn = new JMenuItem("Open");
+    private final JMenuItem saveMenuBtn = new JMenuItem("Save");
+    private final JMenuItem renameMenuBtn = new JMenuItem("Rename");
+    private final JMenuItem exitMenuBtn = new JMenuItem("Exit");
+    
+    // Toolbar
     private final JPanel toolbarPanel = new JPanel();
-    private final JPanel textareaPanel = new JPanel();
     private final JToolBar toolbar = new JToolBar();
+    
+    // Document
+    private final JPanel textareaPanel = new JPanel();
     JTextArea textarea = new JTextArea();
     private final JScrollPane scrollpane = new JScrollPane(textarea);
-    private final JButton saveBtn = new JButton("Save");
-    private final JButton openBtn = new JButton("Open");
-    private final JButton newBtn = new JButton("New");
-    private final JButton renameBtn = new JButton("Rename");
+    private static final int JPANEL_WIDTH_INT = 700;
+    private static final int JPANEL_HEIGHT_INT = 800;
     
     public Texty(String file, TextyModel model) {
         super("Texty - " + file);
@@ -39,41 +48,56 @@ public class Texty extends JFrame {
         textyModel = model;
         textyEvent = new TextyEvent(this, textyModel);
         
-        toolbar.setMargin(new Insets(4, 4, 0, 4));
-        textarea.setBorder(new EmptyBorder(10, 10, 10, 10));
-        textarea.setLineWrap(true);
-        textarea.setWrapStyleWord(true);
-        toolbar.setFloatable(false);
-        
         setSize(new Dimension(JPANEL_WIDTH_INT, JPANEL_HEIGHT_INT));
         setLocationRelativeTo(null);
         toolbarPanel.setPreferredSize(new Dimension(JPANEL_WIDTH_INT, 40));
+        
+        UIManager.put("PopupMenu.border", BorderFactory.createLineBorder(Color.black, 1));
+        
+        toolbar.setMargin(new Insets(4, 4, 0, 4));
+        toolbar.setFloatable(false);
+        
+        textarea.setBorder(new EmptyBorder(10, 10, 10, 10));
+        textarea.setLineWrap(true);
+        textarea.setWrapStyleWord(true);
         
         setLayout(new BorderLayout());
         toolbarPanel.setLayout(new BorderLayout());
         textareaPanel.setLayout(new BorderLayout());
         
-        saveBtn.setActionCommand("InitSave");
-        openBtn.setActionCommand("InitOpen");
-        newBtn.setActionCommand("InitNew");
-        renameBtn.setActionCommand("InitRename");
+        // set file menu button actions
         
-        toolbar.add(saveBtn);
-        toolbar.add(openBtn);
-        toolbar.add(newBtn);
-        toolbar.add(renameBtn);
-        toolbarPanel.add(toolbar);
-        textareaPanel.add(scrollpane);
+        newMenuBtn.setActionCommand("FileMenuNew");
+        openMenuBtn.setActionCommand("FileMenuOpen");
+        saveMenuBtn.setActionCommand("FileMenuSave");
+        renameMenuBtn.setActionCommand("FileMenuRename");
+        exitMenuBtn.setActionCommand("FileMenuExit");
+        
+        setJMenuBar(menuBar);
+        menuBar.add(fileMenu);
+        fileMenu.add(newMenuBtn);
+        fileMenu.addSeparator();
+        fileMenu.add(openMenuBtn);
+        fileMenu.addSeparator();
+        fileMenu.add(saveMenuBtn);
+        fileMenu.addSeparator();
+        fileMenu.add(renameMenuBtn);
+        fileMenu.addSeparator();
+        fileMenu.add(exitMenuBtn);
         add(toolbarPanel, BorderLayout.NORTH);
+        toolbarPanel.add(toolbar);
         add(textareaPanel, BorderLayout.CENTER);
+        textareaPanel.add(scrollpane);
+        
+        // action listeners
+        saveMenuBtn.addActionListener(textyEvent.new SaveEvent());
+        openMenuBtn.addActionListener(textyEvent.new OpenEvent());
+        newMenuBtn.addActionListener(textyEvent.new NewEvent());
+        renameMenuBtn.addActionListener(textyEvent.new RenameEvent());
+        exitMenuBtn.addActionListener(textyEvent.new ExitEvent());
         
         setVisible(true);
         textarea.requestFocusInWindow();
-        
-        saveBtn.addActionListener(textyEvent.new SaveEvent());
-        openBtn.addActionListener(textyEvent.new OpenEvent());
-        newBtn.addActionListener(textyEvent.new NewEvent());
-        renameBtn.addActionListener(textyEvent.new RenameEvent());    
         
         addWindowListener(new WindowAdapter() {
             @Override

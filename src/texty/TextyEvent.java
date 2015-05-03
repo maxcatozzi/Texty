@@ -26,13 +26,42 @@ public class TextyEvent {
     }
     
     // Event Handlers
+    class NewEvent implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+            switch(command){
+                case "FileMenuNew":
+                    TextyModel textyEditor = new TextyModel();
+                    break;
+            }
+        }
+    }
+    
+    class OpenEvent implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+            String[] fileLocation;
+            switch(command){
+                case "FileMenuOpen":
+                    textyView.openWin = textyView.new OpenFileWin();
+                    break;
+                case "Open":
+                    fileLocation = textyView.openWin.getFileLocation();
+                    openFile(fileLocation);
+                    break;
+            }
+        }
+    }
+    
     class SaveEvent implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
             String[] fileLocation;
             switch(command){
-                case "InitSave":
+                case "FileMenuSave":
                     saveFile();
                     break;
                 case "SaveNew":
@@ -50,47 +79,30 @@ public class TextyEvent {
         }
     }
 
-    class OpenEvent implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String command = e.getActionCommand();
-            String[] fileLocation;
-            switch(command){
-                case "InitOpen":
-                    textyView.openWin = textyView.new OpenFileWin();
-                    break;
-                case "Open":
-                    fileLocation = textyView.openWin.getFileLocation();
-                    openFile(fileLocation);
-                    break;
-            }
-        }
-    }
-
-    class NewEvent implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String command = e.getActionCommand();
-            switch(command){
-                case "InitNew":
-                    TextyModel textyEditor = new TextyModel();
-                    break;
-            }
-        }
-    }
-
     class RenameEvent implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
             String newFilename;
             switch(command){
-                case "InitRename":
+                case "FileMenuRename":
                     textyView.renameWin = textyView.new RenameFileWin();
                     break;
                 case "Rename":
                     newFilename = textyView.renameWin.getNewFilename();
                     renameFile(newFilename);
+                    break;
+            }
+        }
+    }
+    
+    class ExitEvent implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+            switch(command){
+                case "FileMenuExit":
+                    System.exit(0);
                     break;
             }
         }
