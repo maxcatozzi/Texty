@@ -110,11 +110,8 @@ public class TextyEvent {
 
     // Body of methods
     private void openFile(String[] fileLocation) {
-        String filepath = fileLocation[0];
+        String filepath = TextyHelper.fixPath(fileLocation[0]);
         String filename = fileLocation[1];
-        if(!filepath.substring(filepath.length()-1).equals("\\")) { // append backslash to filepath if filepath does not end in a backslash
-            filepath += "\\";
-        }
         File file = new File(filepath + filename);
         String content = "";
 
@@ -173,13 +170,9 @@ public class TextyEvent {
     
     private void saveNewFile(String[] fileLocation) {
         try {
-            String filepath = fileLocation[0];
+            String filepath = TextyHelper.fixPath(fileLocation[0]);
             String filename = fileLocation[1];
-            if(!filepath.substring(filepath.length()-1).equals("\\")) { // append backslash to filepath if filepath does not end in a backslash
-                filepath += "\\";
-            }
             String fullFilepath = filepath + filename;
-
             File file = new File(fullFilepath);
             
             if(file.exists()) {
@@ -207,11 +200,8 @@ public class TextyEvent {
 
     private void saveFileAnyway(String[] fileLocation) { 
         try {
-            String filepath = fileLocation[0];
+            String filepath = TextyHelper.fixPath(fileLocation[0]);
             String filename = fileLocation[1];
-            if(!filepath.substring(filepath.length()-1).equals("\\")) { // append backslash to filepath if filepath does not end in a backslash
-                filepath += "\\";
-            }
             textyModel.setFilepath(filepath);
             textyModel.setFilename(filename);
             textyModel.fileIsNew = false;

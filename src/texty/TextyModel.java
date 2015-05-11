@@ -1,5 +1,7 @@
 package texty;
 
+import java.io.File;
+
 /**
  *
  * @author Steve Karwacki
@@ -9,7 +11,8 @@ public class TextyModel {
     // Access to View
     protected Texty textyView;
     
-    public static final String DEFAULT_FILEPATH = "C:\\Users\\Steve\\Documents\\Work\\Java\\Texty\\";
+    public static final String DS = File.separator;
+    public static final String DEFAULT_FILEPATH = "C:"+DS+"Users"+DS+"Steve"+DS+"Documents"+DS+"Work"+DS+"Java"+DS+"Texty"+DS;
     public static final String DEFAULT_FILENAME = "New Document.txt";
     public static String globalFilepath = DEFAULT_FILEPATH;
     private static int instanceCount = 0;

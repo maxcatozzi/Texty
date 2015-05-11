@@ -3,6 +3,7 @@ package texty;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
+import static texty.TextyModel.DS;
 
 /**
  *
@@ -18,7 +19,17 @@ public class TextyHelper {
     
     public static void closeWindow(JFrame window) {
         window.dispose();
-        
+    }
+    
+    public static String fixPath(String path) {
+        String filepath;
+        if(!path.substring(path.length()-1).equals(DS)) { // append backslash to filepath if filepath does not end in a backslash
+            filepath = path + DS;
+        }
+        else {
+            filepath = path;
+        }
+        return filepath;
     }
     
 }
