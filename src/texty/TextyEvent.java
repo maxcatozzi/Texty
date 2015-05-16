@@ -18,9 +18,9 @@ public class TextyEvent {
     
     // Access to Model and View
     TextyModel textyModel;
-    Texty textyView;
+    TextyView textyView;
     
-    public TextyEvent(Texty gui, TextyModel model) {
+    public TextyEvent(TextyView gui, TextyModel model) {
         textyView = gui; 
         textyModel = model;
     }
@@ -73,7 +73,7 @@ public class TextyEvent {
                     saveFileAnyway(fileLocation);
                     break;
                 case "CancelSaveAnyway":
-                    TextyHelper.closeWindow(textyView.saveAnywayWin); // remove resource
+                    TextyHelper.closeWindow(textyView.saveAnywayWin, textyView); // remove resource
                     break;
             }
         }
@@ -122,7 +122,7 @@ public class TextyEvent {
                 content += text;
             }
 
-            TextyHelper.closeWindow(textyView.openWin); // remove resource
+            TextyHelper.closeWindow(textyView.openWin, textyView); // remove resource
             TextyModel.globalFilepath = filepath;
 
             TextyModel textyEditor = new TextyModel(fileLocation, false);
@@ -186,7 +186,7 @@ public class TextyEvent {
 
                 if(saveFile()) {
                     textyView.setTitle("Texty - " + filename);
-                    TextyHelper.closeWindow(textyView.saveWin); // remove resource
+                    TextyHelper.closeWindow(textyView.saveWin, textyView); // remove resource
                     TextyModel.globalFilepath = filepath;
                 }
                 else {
@@ -210,8 +210,8 @@ public class TextyEvent {
             textyView.saveWin.setVisible(false);
             
             if(saveFile()) {
-                TextyHelper.closeWindow(textyView.saveAnywayWin); // remove resource
-                TextyHelper.closeWindow(textyView.saveWin); // remove resource
+                TextyHelper.closeWindow(textyView.saveAnywayWin, textyView); // remove resource
+                TextyHelper.closeWindow(textyView.saveWin, textyView); // remove resource
                 TextyModel.globalFilepath = filepath;
             }
             else {
@@ -229,7 +229,7 @@ public class TextyEvent {
             textyModel.fileIsNew = true;
             textyView.setTitle("Texty - " + filename);
             
-            TextyHelper.closeWindow(textyView.renameWin); // remove resource
+            TextyHelper.closeWindow(textyView.renameWin, textyView); // remove resource
         } catch(Exception e) {
             JOptionPane.showMessageDialog(textyView, "File could not be renamed!\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }

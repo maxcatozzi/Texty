@@ -17,10 +17,12 @@ public class TextyHelper {
         return matcher.find();
     }
     
-    public static void closeWindow(JFrame window) {
-        window.dispose();
+    public static void closeWindow(JFrame closeWindow, JFrame enableWindow) {
+        closeWindow.dispose();
+        enableWindow.setEnabled(true);
+        enableWindow.setVisible(true);
     }
-    
+     
     public static String fixPath(String path) {
         String filepath;
         if(!path.substring(path.length()-1).equals(DS)) { // append backslash to filepath if filepath does not end in a backslash

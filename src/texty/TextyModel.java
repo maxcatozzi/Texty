@@ -9,7 +9,7 @@ import java.io.File;
 public class TextyModel {
     
     // Access to View
-    protected Texty textyView;
+    protected TextyView textyView;
     
     public static final String DS = File.separator;
     public static final String DEFAULT_FILEPATH = "C:"+DS+"Users"+DS+"Steve"+DS+"Documents"+DS+"Work"+DS+"Java"+DS+"Texty"+DS;
@@ -32,7 +32,7 @@ public class TextyModel {
         fileIsNew = newFile;
         filepath = fileLocation[0];
         filename = fileLocation[1];
-        textyView = new Texty(filename, this);
+        textyView = new TextyView(filename, this);
         instanceCount++;
     }
     
