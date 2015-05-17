@@ -37,7 +37,7 @@ public class TextyView extends JFrame {
     
     // Document
     private final JPanel textareaPanel = new JPanel();
-    JTextArea textarea = new JTextArea();
+    JTextPane textarea = new JTextPane();
     private final JScrollPane scrollpane = new JScrollPane(textarea);
     private static final int JPANEL_WIDTH_INT = 700;
     private static final int JPANEL_HEIGHT_INT = 800;
@@ -60,8 +60,6 @@ public class TextyView extends JFrame {
         toolbar.setFloatable(false);
         
         textarea.setBorder(new EmptyBorder(10, 10, 10, 10));
-        textarea.setLineWrap(true);
-        textarea.setWrapStyleWord(true);
         
         setLayout(new BorderLayout());
         toolbarPanel.setLayout(new BorderLayout());

@@ -1,14 +1,24 @@
 package texty;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.rtf.RTFEditorKit;
 
 /**
  *
@@ -144,18 +154,25 @@ public class TextyEvent {
         else {
 
             filepath = textyModel.getFilepath() + textyModel.getFilename();
-
             File file = new File(filepath);
-            String content = textyView.textarea.getText();
 
-            try(FileOutputStream fop = new FileOutputStream(file)) {
+            try(BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(file))) {
 
                 if(!file.exists()) {
                     file.createNewFile();
                 }
-
-                byte[] contentInBytes = content.getBytes();
-                fop.write(contentInBytes);
+                
+                RTFEditorKit kit = new RTFEditorKit();
+                //String content = textyView.textarea.getDocument().getText(0, textyView.textarea.getDocument().getLength());
+                
+                StyledDocument doc = textyView.textarea.getStyledDocument();
+                /*Style colorStyle = textyView.textarea.addStyle("Color", null);
+                StyleConstants.setForeground(colorStyle, Color.blue);
+                
+                doc.remove(0, textyView.textarea.getDocument().getLength());
+                doc.insertString(0, content, colorStyle);*/
+                
+                kit.write(fileOut, doc, 0, textyView.textarea.getDocument().getLength());
 
                 JOptionPane.showMessageDialog(textyView, "File Saved!", "Success", JOptionPane.PLAIN_MESSAGE);
 
@@ -163,6 +180,8 @@ public class TextyEvent {
 
             } catch(IOException e) {
                 JOptionPane.showMessageDialog(textyView, "File was not saved!\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (BadLocationException ex) {
+                Logger.getLogger(TextyEvent.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return saveSuccess;
@@ -195,6 +214,7 @@ public class TextyEvent {
             }
 
         } catch(Exception e) {
+            textyView.saveWin.setVisible(true);
         }
     }
 
@@ -215,11 +235,11 @@ public class TextyEvent {
                 TextyModel.globalFilepath = filepath;
             }
             else {
-                textyView.saveAnywayWin.setVisible(true);
                 textyView.saveWin.setVisible(true);
             }
             
         } catch(Exception e) {
+            textyView.saveWin.setVisible(true);
         }
     }
 
