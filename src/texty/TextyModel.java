@@ -1,6 +1,7 @@
 package texty;
 
 import java.io.File;
+import javax.swing.text.SimpleAttributeSet;
 
 /**
  *
@@ -11,16 +12,17 @@ public class TextyModel {
     // Access to View
     protected TextyView textyView;
     
-    public static final String DS = File.separator;
-    public static final String DEFAULT_FILEPATH = "C:"+DS+"Users"+DS+"Steve"+DS+"Documents"+DS+"Work"+DS+"Java"+DS+"Texty"+DS;
-    public static final String DEFAULT_FILENAME = "New Document.txt";
-    public static String globalFilepath = DEFAULT_FILEPATH;
+    protected static final String DS = File.separator;
+    private static final String DEFAULT_FILEPATH = "C:"+DS+"Users"+DS+"Steve"+DS+"Documents"+DS+"Work"+DS+"Java"+DS+"Texty"+DS;
+    private static final String DEFAULT_FILENAME = "New Document.txt";
+    protected static String globalFilepath = DEFAULT_FILEPATH;
     private static int instanceCount = 0;
     
     private String filepath;
     private String filename;
     protected boolean fileIsNew;
     protected boolean saveAnyway;
+    protected SimpleAttributeSet fontAttributes;
     
     public TextyModel() {
         this.saveAnyway = false;
@@ -33,6 +35,7 @@ public class TextyModel {
         filepath = fileLocation[0];
         filename = fileLocation[1];
         textyView = new TextyView(filename, this);
+        fontAttributes = new SimpleAttributeSet();
         instanceCount++;
     }
     

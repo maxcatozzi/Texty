@@ -1,6 +1,5 @@
 package texty;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedOutputStream;
@@ -9,16 +8,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Style;
+import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.rtf.RTFEditorKit;
+import static texty.TextyView.DEFAULT_BUTTON_BG;
+import static texty.TextyView.DEPRESSED_BUTTON_BG;
 
 /**
  *
@@ -117,6 +117,107 @@ public class TextyEvent {
             }
         }
     }
+    
+    class ToolbarEvent implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+            //String selectedText;
+            switch(command){
+                case "ToolbarEmbolden":
+                    // need to get style of selected text and toggle
+                    /*selectedText = textyView.textarea.getSelectedText();
+                    if(selectedText != null) {
+                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
+                        StyleConstants.setBold(newFontAttributes, true); 
+                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
+                    }
+                    else {*/
+                        StyleConstants.setBold(textyModel.fontAttributes, true); 
+                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
+                    //}
+                    textyView.boldBtn.setBackground(DEPRESSED_BUTTON_BG);
+                    textyView.boldBtn.setActionCommand("ToolbarUnbold");
+                    textyView.textarea.requestFocusInWindow();
+                    break;
+                case "ToolbarUnbold":
+                    /*selectedText = textyView.textarea.getSelectedText();
+                    if(selectedText != null) {
+                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
+                        StyleConstants.setBold(newFontAttributes, false); 
+                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
+                    }
+                    else {*/
+                        StyleConstants.setBold(textyModel.fontAttributes, false); 
+                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
+                    //}
+                    textyView.boldBtn.setBackground(DEFAULT_BUTTON_BG);
+                    textyView.boldBtn.setActionCommand("ToolbarEmbolden");
+                    textyView.textarea.requestFocusInWindow();
+                    break;
+                case "ToolbarItalicize":
+                    /*selectedText = textyView.textarea.getSelectedText();
+                    if(selectedText != null) {
+                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
+                        StyleConstants.setItalic(newFontAttributes, true); 
+                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
+                    }
+                    else {*/
+                        StyleConstants.setItalic(textyModel.fontAttributes, true); 
+                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
+                    //}
+                    textyView.italicBtn.setBackground(DEPRESSED_BUTTON_BG);
+                    textyView.italicBtn.setActionCommand("ToolbarDetalicize");
+                    textyView.textarea.requestFocusInWindow();
+                    break;
+                case "ToolbarDetalicize":
+                    /*selectedText = textyView.textarea.getSelectedText();
+                    if(selectedText != null) {
+                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
+                        StyleConstants.setItalic(newFontAttributes, false); 
+                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
+                    }
+                    else {*/
+                        StyleConstants.setItalic(textyModel.fontAttributes, false); 
+                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
+                    //}
+                    textyView.italicBtn.setBackground(DEFAULT_BUTTON_BG);
+                    textyView.italicBtn.setActionCommand("ToolbarItalicize");
+                    textyView.textarea.requestFocusInWindow();
+                    break;
+                case "ToolbarUnderline":
+                    /*selectedText = textyView.textarea.getSelectedText();
+                    if(selectedText != null) {
+                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
+                        StyleConstants.setUnderline(newFontAttributes, true); 
+                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
+                    }
+                    else {*/
+                        StyleConstants.setUnderline(textyModel.fontAttributes, true); 
+                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
+                    //}
+                    textyView.underlineBtn.setBackground(DEPRESSED_BUTTON_BG);
+                    textyView.underlineBtn.setActionCommand("ToolbarUnline");
+                    textyView.textarea.requestFocusInWindow();
+                    break;
+                case "ToolbarUnline":
+                    /*selectedText = textyView.textarea.getSelectedText();
+                    if(selectedText != null) {
+                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
+                        StyleConstants.setUnderline(newFontAttributes, false); 
+                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
+                    }
+                    else {*/
+                        StyleConstants.setUnderline(textyModel.fontAttributes, false); 
+                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
+                    //}
+                    textyView.underlineBtn.setBackground(DEFAULT_BUTTON_BG);
+                    textyView.underlineBtn.setActionCommand("ToolbarUnderline");
+                    textyView.textarea.requestFocusInWindow();
+                    break;
+            }
+        }
+    }
 
     // Body of methods
     private void openFile(String[] fileLocation) {
@@ -163,14 +264,8 @@ public class TextyEvent {
                 }
                 
                 RTFEditorKit kit = new RTFEditorKit();
-                //String content = textyView.textarea.getDocument().getText(0, textyView.textarea.getDocument().getLength());
                 
                 StyledDocument doc = textyView.textarea.getStyledDocument();
-                /*Style colorStyle = textyView.textarea.addStyle("Color", null);
-                StyleConstants.setForeground(colorStyle, Color.blue);
-                
-                doc.remove(0, textyView.textarea.getDocument().getLength());
-                doc.insertString(0, content, colorStyle);*/
                 
                 kit.write(fileOut, doc, 0, textyView.textarea.getDocument().getLength());
 

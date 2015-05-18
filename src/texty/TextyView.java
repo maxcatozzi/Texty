@@ -32,8 +32,13 @@ public class TextyView extends JFrame {
     private final JMenuItem exitMenuBtn = new JMenuItem("Exit");
     
     // Toolbar
+    protected static final Color DEFAULT_BUTTON_BG = new JButton().getBackground();
+    protected static final Color DEPRESSED_BUTTON_BG = Color.LIGHT_GRAY;
     private final JPanel toolbarPanel = new JPanel();
     private final JToolBar toolbar = new JToolBar();
+    protected final JButton boldBtn = new JButton("Bold");
+    protected final JButton italicBtn = new JButton("Italic");
+    protected final JButton underlineBtn = new JButton("Underline");
     
     // Document
     private final JPanel textareaPanel = new JPanel();
@@ -66,12 +71,15 @@ public class TextyView extends JFrame {
         textareaPanel.setLayout(new BorderLayout());
         
         // set file menu button actions
-        
         newMenuBtn.setActionCommand("FileMenuNew");
         openMenuBtn.setActionCommand("FileMenuOpen");
         saveMenuBtn.setActionCommand("FileMenuSave");
         renameMenuBtn.setActionCommand("FileMenuRename");
         exitMenuBtn.setActionCommand("FileMenuExit");
+        // toolbar button actions
+        boldBtn.setActionCommand("ToolbarEmbolden");
+        italicBtn.setActionCommand("ToolbarItalicize");
+        underlineBtn.setActionCommand("ToolbarUnderline");
         
         setJMenuBar(menuBar);
         menuBar.add(fileMenu);
@@ -84,17 +92,27 @@ public class TextyView extends JFrame {
         fileMenu.add(renameMenuBtn);
         fileMenu.addSeparator();
         fileMenu.add(exitMenuBtn);
+        
         add(toolbarPanel, BorderLayout.NORTH);
         toolbarPanel.add(toolbar);
+        toolbar.add(boldBtn);
+        toolbar.add(italicBtn);
+        toolbar.add(underlineBtn);
+        
         add(textareaPanel, BorderLayout.CENTER);
         textareaPanel.add(scrollpane);
         
         // action listeners
+        // menu
         saveMenuBtn.addActionListener(textyEvent.new SaveEvent());
         openMenuBtn.addActionListener(textyEvent.new OpenEvent());
         newMenuBtn.addActionListener(textyEvent.new NewEvent());
         renameMenuBtn.addActionListener(textyEvent.new RenameEvent());
         exitMenuBtn.addActionListener(textyEvent.new ExitEvent());
+        //toolbar
+        boldBtn.addActionListener(textyEvent.new ToolbarEvent());
+        italicBtn.addActionListener(textyEvent.new ToolbarEvent());
+        underlineBtn.addActionListener(textyEvent.new ToolbarEvent());
         
         setVisible(true);
         textarea.requestFocusInWindow();
