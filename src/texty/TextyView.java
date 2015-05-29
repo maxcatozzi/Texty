@@ -19,8 +19,6 @@ public class TextyView extends JFrame {
     // Access to gui windows
     protected TextyView.SaveAnywayWin saveAnywayWin;
     protected TextyView.RenameFileWin renameWin;
-    protected TextyView.OpenFileWin openWin;
-    protected TextyView.saveLocationWin saveWin;
     
     // Menu Bar
     JMenuBar menuBar = new JMenuBar();
@@ -28,6 +26,7 @@ public class TextyView extends JFrame {
     private final JMenuItem newMenuBtn = new JMenuItem("New");
     private final JMenuItem openMenuBtn = new JMenuItem("Open");
     private final JMenuItem saveMenuBtn = new JMenuItem("Save");
+    private final JMenuItem saveasMenuBtn = new JMenuItem("Save As");
     private final JMenuItem renameMenuBtn = new JMenuItem("Rename");
     private final JMenuItem exitMenuBtn = new JMenuItem("Exit");
     
@@ -74,6 +73,7 @@ public class TextyView extends JFrame {
         newMenuBtn.setActionCommand("FileMenuNew");
         openMenuBtn.setActionCommand("FileMenuOpen");
         saveMenuBtn.setActionCommand("FileMenuSave");
+        saveasMenuBtn.setActionCommand("FileMenuSaveAs");
         renameMenuBtn.setActionCommand("FileMenuRename");
         exitMenuBtn.setActionCommand("FileMenuExit");
         // toolbar button actions
@@ -88,6 +88,7 @@ public class TextyView extends JFrame {
         fileMenu.add(openMenuBtn);
         fileMenu.addSeparator();
         fileMenu.add(saveMenuBtn);
+        fileMenu.add(saveasMenuBtn);
         fileMenu.addSeparator();
         fileMenu.add(renameMenuBtn);
         fileMenu.addSeparator();
@@ -105,6 +106,7 @@ public class TextyView extends JFrame {
         // action listeners
         // menu
         saveMenuBtn.addActionListener(textyEvent.new SaveEvent());
+        saveasMenuBtn.addActionListener(textyEvent.new SaveEvent());
         openMenuBtn.addActionListener(textyEvent.new OpenEvent());
         newMenuBtn.addActionListener(textyEvent.new NewEvent());
         renameMenuBtn.addActionListener(textyEvent.new RenameEvent());
@@ -128,65 +130,6 @@ public class TextyView extends JFrame {
                 }
             }
         });
-        
-    }
-    
-    protected class saveLocationWin extends JFrame {      
-        private final JPanel northPanel = new JPanel();
-        private final JPanel southPanel = new JPanel();
-        private final JLabel pathLabel = new JLabel("Filepath:");
-        private final JLabel fileLabel = new JLabel("Filename:");
-        private final JTextField filepathField;
-        private final JTextField filenameField;
-        private final JButton saveBtn = new JButton("Save");
-        
-        protected saveLocationWin() {
-            super("Save New File");
-            textyView.setEnabled(false);
-            
-            String currentDirectory = TextyModel.globalFilepath;
-            String currentFilename = textyModel.getFilename();
-            
-            filepathField = new JTextField(currentDirectory);
-            filepathField.setMargin(new Insets(0, 4, 0, 4));
-            filenameField = new JTextField(currentFilename);
-            filenameField.setMargin(new Insets(0, 4, 0, 4));
-            
-            setLocationRelativeTo(null);
-            filepathField.setPreferredSize(new Dimension(340, 30));
-            filenameField.setPreferredSize(new Dimension(140, 30));
-            
-            saveBtn.setActionCommand("SaveNew");
-            
-            northPanel.add(pathLabel);
-            northPanel.add(filepathField);
-            southPanel.add(fileLabel);
-            southPanel.add(filenameField);
-            southPanel.add(saveBtn);
-            add(northPanel, BorderLayout.NORTH);
-            add(southPanel, BorderLayout.SOUTH);
-            pack();
-            
-            setVisible(true);
-            setResizable(false);
-
-            filenameField.requestFocusInWindow();
-            
-            saveBtn.addActionListener(textyEvent.new SaveEvent());
-            
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    TextyHelper.closeWindow(saveWin, textyView); // remove resource
-                }
-            });
-            
-        }
-        
-        protected String[] getFileLocation() {
-            String[] fileLocation = new String[]{filepathField.getText(), filenameField.getText()};
-            return fileLocation;
-        }
         
     }
 
@@ -231,63 +174,6 @@ public class TextyView extends JFrame {
             });
             
         }
-    }
-
-    protected class OpenFileWin extends JFrame {        
-        private final JPanel northPanel = new JPanel();
-        private final JPanel southPanel = new JPanel();
-        private final JLabel pathLabel = new JLabel("Filepath:");
-        private final JLabel fileLabel = new JLabel("Filename:");
-        private final JTextField filepathField;
-        private final JTextField filenameField;
-        private final JButton openBtn = new JButton("Open");
-        
-        protected OpenFileWin() {
-            super("Open File");
-            textyView.setEnabled(false);
-            
-            String currentDir = TextyModel.globalFilepath;
-            
-            filepathField = new JTextField(currentDir);
-            filepathField.setMargin(new Insets(0, 4, 0, 4));
-            filenameField = new JTextField();
-            filenameField.setMargin(new Insets(0, 4, 0, 4));
-            
-            setLocationRelativeTo(null);
-
-            filepathField.setPreferredSize(new Dimension(340, 30));
-            filenameField.setPreferredSize(new Dimension(140, 30));
-            
-            northPanel.add(pathLabel);
-            northPanel.add(filepathField);
-            southPanel.add(fileLabel);
-            southPanel.add(filenameField);
-            southPanel.add(openBtn);
-            add(northPanel, BorderLayout.NORTH);
-            add(southPanel, BorderLayout.SOUTH);
-            pack();
-            
-            setVisible(true);
-            setResizable(false);
-
-            filenameField.requestFocusInWindow();
-            
-            openBtn.addActionListener(textyEvent.new OpenEvent());
-            
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    TextyHelper.closeWindow(openWin, textyView); // remove resource
-                }
-            });
-            
-        }
-        
-        protected String[] getFileLocation() {
-            String[] fileLocation = new String[]{filepathField.getText(), filenameField.getText()};
-            return fileLocation;
-        }
-
     }
     
     protected class RenameFileWin extends JFrame {       

@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
@@ -52,14 +53,15 @@ public class TextyEvent {
         @Override
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
-            String[] fileLocation;
             switch(command){
                 case "FileMenuOpen":
-                    textyView.openWin = textyView.new OpenFileWin();
-                    break;
-                case "Open":
-                    fileLocation = textyView.openWin.getFileLocation();
-                    openFile(fileLocation);
+                    JFileChooser fc = new JFileChooser(TextyModel.globalFilepath);
+                    fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                    int returnVal = fc.showOpenDialog(textyView);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        File file = fc.getSelectedFile();
+                        openFile(file);
+                    }
                     break;
             }
         }
@@ -69,21 +71,38 @@ public class TextyEvent {
         @Override
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
-            String[] fileLocation;
+            String fullFilepath;
+            File saveFile;
             switch(command){
                 case "FileMenuSave":
-                    saveFile();
+                    fullFilepath = textyModel.getFilepath() + textyModel.getFilename();
+                    saveFile = new File(fullFilepath);
+                    saveFile(saveFile);
                     break;
-                case "SaveNew":
-                    fileLocation = textyView.saveWin.getFileLocation();
-                    saveNewFile(fileLocation);
+                case "FileMenuSaveAs":
+                    textyModel.fileIsNew = true;
+                    JFileChooser fc = new JFileChooser();
+                    fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                    fc.setDialogTitle("Save As");
+                    fc.setApproveButtonText("Save As");
+                    int returnVal = fc.showSaveDialog(textyView);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        saveFile = fc.getSelectedFile();
+                        saveFile(saveFile);
+                    }
                     break;
                 case "SaveAnyway":
-                    fileLocation = textyView.saveWin.getFileLocation();
-                    saveFileAnyway(fileLocation);
+                    textyModel.fileIsNew = false;
+                    TextyHelper.closeWindow(textyView.saveAnywayWin, textyView);
+                    fullFilepath = textyModel.getFilepath() + textyModel.getFilename();
+                    saveFile = new File(fullFilepath);
+                    if(saveFile(saveFile)) {
+                        textyView.setTitle("Texty - " + textyModel.getFilename());
+                        TextyModel.globalFilepath = textyModel.getFilepath();
+                    }
                     break;
                 case "CancelSaveAnyway":
-                    TextyHelper.closeWindow(textyView.saveAnywayWin, textyView); // remove resource
+                    TextyHelper.closeWindow(textyView.saveAnywayWin, textyView);
                     break;
             }
         }
@@ -220,20 +239,20 @@ public class TextyEvent {
     }
 
     // Body of methods
-    private void openFile(String[] fileLocation) {
-        String filepath = TextyHelper.fixPath(fileLocation[0]);
-        String filename = fileLocation[1];
-        File file = new File(filepath + filename);
-        String content = "";
+    private void openFile(File openFile) {
+        String fullpath = openFile.getAbsolutePath();
+        String filepath = TextyHelper.fixPath(fullpath.substring(0,fullpath.lastIndexOf(File.separator)));
+        String filename = openFile.getName();
+        String[] fileLocation = new String[]{filepath,filename};
 
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try(BufferedReader reader = new BufferedReader(new FileReader(openFile))) {
+            String content = "";
             String text;
 
             while ((text = reader.readLine()) != null) {
                 content += text;
             }
 
-            TextyHelper.closeWindow(textyView.openWin, textyView); // remove resource
             TextyModel.globalFilepath = filepath;
 
             TextyModel textyEditor = new TextyModel(fileLocation, false);
@@ -246,31 +265,35 @@ public class TextyEvent {
         }
     }
 
-    public boolean saveFile() { 
-        String filepath;
+    public boolean saveFile(File saveFile) {        
         boolean saveSuccess = false;
+        
         if(textyModel.fileIsNew) {
-            textyView.saveWin = textyView.new saveLocationWin();
+            if(saveFile.exists()) {
+                textyView.saveAnywayWin = textyView.new SaveAnywayWin();
+            }
+            else {
+                JFileChooser fc = new JFileChooser();
+                fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                int returnVal = fc.showSaveDialog(textyView);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    saveFile = fc.getSelectedFile();
+                    saveNewFile(saveFile);
+                }
+            }
         }
         else {
 
-            filepath = textyModel.getFilepath() + textyModel.getFilename();
-            File file = new File(filepath);
-
-            try(BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(file))) {
-
-                if(!file.exists()) {
-                    file.createNewFile();
+            try(BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(saveFile))) {
+                if(!saveFile.exists()) {
+                    saveFile.createNewFile();
                 }
                 
                 RTFEditorKit kit = new RTFEditorKit();
-                
                 StyledDocument doc = textyView.textarea.getStyledDocument();
-                
                 kit.write(fileOut, doc, 0, textyView.textarea.getDocument().getLength());
 
                 JOptionPane.showMessageDialog(textyView, "File Saved!", "Success", JOptionPane.PLAIN_MESSAGE);
-
                 saveSuccess = true;
 
             } catch(IOException e) {
@@ -282,59 +305,36 @@ public class TextyEvent {
         return saveSuccess;
     }
     
-    private void saveNewFile(String[] fileLocation) {
+    private void saveNewFile(File saveFile) {
         try {
-            String filepath = TextyHelper.fixPath(fileLocation[0]);
-            String filename = fileLocation[1];
-            String fullFilepath = filepath + filename;
-            File file = new File(fullFilepath);
+            String fullpath = saveFile.getAbsolutePath();
+            String filepath = TextyHelper.fixPath(fullpath.substring(0,fullpath.lastIndexOf(File.separator)));
+            String filename = saveFile.getName();
             
-            if(file.exists()) {
+            String oldFilepath = textyModel.getFilepath();
+            String oldFilename = textyModel.getFilename();
+            textyModel.setFilepath(filepath);
+            textyModel.setFilename(filename);
+            
+            if(saveFile.exists()) {
                 textyView.saveAnywayWin = textyView.new SaveAnywayWin();
             }
             else {
-                textyModel.setFilepath(filepath);
-                textyModel.setFilename(filename);
+                
                 textyModel.fileIsNew = false;
-                textyView.saveWin.setVisible(false);
-
-                if(saveFile()) {
+                
+                if(saveFile(saveFile)) {
                     textyView.setTitle("Texty - " + filename);
-                    TextyHelper.closeWindow(textyView.saveWin, textyView); // remove resource
                     TextyModel.globalFilepath = filepath;
                 }
                 else {
-                    textyView.saveWin.setVisible(true);
+                    textyModel.setFilepath(oldFilepath);
+                    textyModel.setFilename(oldFilename);
                 }
             }
 
         } catch(Exception e) {
-            textyView.saveWin.setVisible(true);
-        }
-    }
-
-    private void saveFileAnyway(String[] fileLocation) { 
-        try {
-            String filepath = TextyHelper.fixPath(fileLocation[0]);
-            String filename = fileLocation[1];
-            textyModel.setFilepath(filepath);
-            textyModel.setFilename(filename);
-            textyModel.fileIsNew = false;
-            
-            textyView.saveAnywayWin.setVisible(false);
-            textyView.saveWin.setVisible(false);
-            
-            if(saveFile()) {
-                TextyHelper.closeWindow(textyView.saveAnywayWin, textyView); // remove resource
-                TextyHelper.closeWindow(textyView.saveWin, textyView); // remove resource
-                TextyModel.globalFilepath = filepath;
-            }
-            else {
-                textyView.saveWin.setVisible(true);
-            }
-            
-        } catch(Exception e) {
-            textyView.saveWin.setVisible(true);
+            JOptionPane.showMessageDialog(textyView, "File was not saved! " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

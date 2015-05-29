@@ -53,7 +53,7 @@ public class TextyModel {
     }
     
     protected void setFilepath(String newPath) {
-        filepath = newPath;
+        filepath = TextyHelper.fixPath(newPath);
     }
     
     protected String getFilename() {
