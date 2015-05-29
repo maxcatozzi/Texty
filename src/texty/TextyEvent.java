@@ -81,7 +81,7 @@ public class TextyEvent {
                     break;
                 case "FileMenuSaveAs":
                     textyModel.fileIsNew = true;
-                    JFileChooser fc = new JFileChooser();
+                    JFileChooser fc = new JFileChooser(TextyModel.globalFilepath);
                     fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                     fc.setDialogTitle("Save As");
                     fc.setApproveButtonText("Save As");
@@ -273,7 +273,7 @@ public class TextyEvent {
                 textyView.saveAnywayWin = textyView.new SaveAnywayWin();
             }
             else {
-                JFileChooser fc = new JFileChooser();
+                JFileChooser fc = new JFileChooser(TextyModel.globalFilepath);
                 fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                 int returnVal = fc.showSaveDialog(textyView);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
