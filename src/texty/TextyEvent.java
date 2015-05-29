@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
@@ -290,15 +289,10 @@ public class TextyEvent {
 
             TextyModel.globalFilepath = filepath;
 
-            
-            
-
         } catch (FileNotFoundException e) {
             JOptionPane.showMessageDialog(textyView, "File Not Found!\nError: The file \"" + filepath + filename + "\" does not exist", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IOException e) {
+        } catch (IOException | BadLocationException e) {
             JOptionPane.showMessageDialog(textyView, "File Could Not Be Opened!\nError: "+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (BadLocationException ex) {
-            Logger.getLogger(TextyEvent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
