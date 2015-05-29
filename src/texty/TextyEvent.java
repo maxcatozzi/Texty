@@ -2,15 +2,20 @@ package texty;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
@@ -94,7 +99,7 @@ public class TextyEvent {
                 case "SaveAnyway":
                     textyModel.fileIsNew = false;
                     TextyHelper.closeWindow(textyView.saveAnywayWin, textyView);
-                    fullFilepath = textyModel.getFilepath() + textyModel.getFilename();
+                    fullFilepath = TextyHelper.fixPath(textyModel.getFilepath()) + textyModel.getFilename();
                     saveFile = new File(fullFilepath);
                     if(saveFile(saveFile)) {
                         textyView.setTitle("Texty - " + textyModel.getFilename());
@@ -247,21 +252,53 @@ public class TextyEvent {
 
         try(BufferedReader reader = new BufferedReader(new FileReader(openFile))) {
             String content = "";
-            String text;
-
-            while ((text = reader.readLine()) != null) {
-                content += text;
+            String doctype;
+            InputStream checkMimeInput = new BufferedInputStream(new FileInputStream(openFile));
+            String mimeType = URLConnection.guessContentTypeFromStream(checkMimeInput);
+            if(mimeType == null) mimeType = URLConnection.guessContentTypeFromName(openFile.getName());
+            
+            switch(mimeType){
+                case "application/rtf":
+                    doctype = "rtf";
+                    break;
+                case "application/x-rtf":
+                    doctype = "rtf";
+                    break;
+                case "text/richtext":
+                    doctype = "rtf";
+                    break;
+                default:
+                    doctype = "plain";
+                    break;
+            }
+            
+            TextyModel newTextyEditor = new TextyModel(fileLocation, false);
+            
+            if(doctype.equals("rtf")) {
+                RTFEditorKit rtfKit = new RTFEditorKit(); 
+                newTextyEditor.textyView.textarea.setEditorKit(rtfKit); 
+                FileInputStream fi = new FileInputStream(openFile); 
+                rtfKit.read( fi, newTextyEditor.textyView.textarea.getDocument(), 0 ); 
+            }
+            else if(doctype.equals("plain")){
+                String text;
+                while ((text = reader.readLine()) != null) {
+                    content += text;
+                }
+                newTextyEditor.textyView.textarea.setText(content);
             }
 
             TextyModel.globalFilepath = filepath;
 
-            TextyModel textyEditor = new TextyModel(fileLocation, false);
-            textyEditor.textyView.textarea.setText(content);
+            
+            
 
         } catch (FileNotFoundException e) {
             JOptionPane.showMessageDialog(textyView, "File Not Found!\nError: The file \"" + filepath + filename + "\" does not exist", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(textyView, "File Could Not Be Opened!\nError: "+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(TextyEvent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

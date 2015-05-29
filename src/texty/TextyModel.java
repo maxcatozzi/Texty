@@ -33,7 +33,7 @@ public class TextyModel {
     public TextyModel(String[] fileLocation, boolean newFile) {
         this.saveAnyway = false;
         fileIsNew = newFile;
-        filepath = fileLocation[0];
+        filepath = TextyHelper.fixPath(fileLocation[0]);
         filename = fileLocation[1];
         textyView = new TextyView(filename, this);
         fontAttributes = new SimpleAttributeSet();
