@@ -1,6 +1,7 @@
 package texty;
 
 import java.io.File;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.SimpleAttributeSet;
 
 /**
@@ -13,7 +14,7 @@ public class TextyModel {
     protected TextyView textyView;
     
     protected static final String DS = File.separator;
-    private static final String DEFAULT_FILEPATH = "C:"+DS+"Users"+DS+"Steve"+DS+"Documents"+DS+"Work"+DS+"Java"+DS+"Texty"+DS;
+    private static final String DEFAULT_FILEPATH = FileSystemView.getFileSystemView().getDefaultDirectory().toPath().toString();
     private static final String DEFAULT_FILENAME = "New Document.txt";
     protected static String globalFilepath = DEFAULT_FILEPATH;
     private static int instanceCount = 0;
