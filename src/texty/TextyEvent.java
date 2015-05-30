@@ -15,12 +15,16 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.event.CaretListener;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
+import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import javax.swing.text.rtf.RTFEditorKit;
 import static texty.TextyView.DEFAULT_BUTTON_BG;
 import static texty.TextyView.DEPRESSED_BUTTON_BG;
@@ -84,7 +88,7 @@ public class TextyEvent {
                     saveFile(saveFile);
                     break;
                 case "FileMenuSaveAs":
-                    textyModel.fileIsNew = true;
+                    textyModel.fileIsNew = false;
                     JFileChooser fc = new JFileChooser(TextyModel.globalFilepath);
                     fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                     fc.setDialogTitle("Save As");
@@ -111,23 +115,6 @@ public class TextyEvent {
             }
         }
     }
-
-    class RenameEvent implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String command = e.getActionCommand();
-            String newFilename;
-            switch(command){
-                case "FileMenuRename":
-                    textyView.renameWin = textyView.new RenameFileWin();
-                    break;
-                case "Rename":
-                    newFilename = textyView.renameWin.getNewFilename();
-                    renameFile(newFilename);
-                    break;
-            }
-        }
-    }
     
     class ExitEvent implements ActionListener {
         @Override
@@ -141,108 +128,217 @@ public class TextyEvent {
         }
     }
     
+    class CaretEvent implements CaretListener {
+        @Override
+        public void caretUpdate(javax.swing.event.CaretEvent e) {
+            final int dot = e.getDot();
+            final int mark = e.getMark();
+            if(dot == mark) {
+                Element charElement = textyModel.styleDoc.getCharacterElement(dot);
+                AttributeSet attributes = charElement.getAttributes();
+                setTypeStyles(attributes);
+            }
+            else {
+                setSelectionStyles(mark, dot);
+            }
+        }    
+    }
+    
     class ToolbarEvent implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
-            //String selectedText;
             switch(command){
                 case "ToolbarEmbolden":
-                    // need to get style of selected text and toggle
-                    /*selectedText = textyView.textarea.getSelectedText();
-                    if(selectedText != null) {
-                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
-                        StyleConstants.setBold(newFontAttributes, true); 
-                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
-                    }
-                    else {*/
-                        StyleConstants.setBold(textyModel.fontAttributes, true); 
-                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
-                    //}
-                    textyView.boldBtn.setBackground(DEPRESSED_BUTTON_BG);
-                    textyView.boldBtn.setActionCommand("ToolbarUnbold");
+                    setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
+                    setTextStyle("bold", true);
                     textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarUnbold":
-                    /*selectedText = textyView.textarea.getSelectedText();
-                    if(selectedText != null) {
-                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
-                        StyleConstants.setBold(newFontAttributes, false); 
-                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
-                    }
-                    else {*/
-                        StyleConstants.setBold(textyModel.fontAttributes, false); 
-                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
-                    //}
-                    textyView.boldBtn.setBackground(DEFAULT_BUTTON_BG);
-                    textyView.boldBtn.setActionCommand("ToolbarEmbolden");
+                    setButtonState(textyView.boldBtn, 0, "ToolbarEmbolden");
+                    setTextStyle("bold", false);
                     textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarItalicize":
-                    /*selectedText = textyView.textarea.getSelectedText();
-                    if(selectedText != null) {
-                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
-                        StyleConstants.setItalic(newFontAttributes, true); 
-                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
-                    }
-                    else {*/
-                        StyleConstants.setItalic(textyModel.fontAttributes, true); 
-                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
-                    //}
-                    textyView.italicBtn.setBackground(DEPRESSED_BUTTON_BG);
-                    textyView.italicBtn.setActionCommand("ToolbarDetalicize");
+                    setButtonState(textyView.italicBtn, 1, "ToolbarDetalicize");
+                    setTextStyle("italic", true);
                     textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarDetalicize":
-                    /*selectedText = textyView.textarea.getSelectedText();
-                    if(selectedText != null) {
-                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
-                        StyleConstants.setItalic(newFontAttributes, false); 
-                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
-                    }
-                    else {*/
-                        StyleConstants.setItalic(textyModel.fontAttributes, false); 
-                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
-                    //}
-                    textyView.italicBtn.setBackground(DEFAULT_BUTTON_BG);
-                    textyView.italicBtn.setActionCommand("ToolbarItalicize");
+                    setButtonState(textyView.italicBtn, 0, "ToolbarItalicize");
+                    setTextStyle("italic", false);
                     textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarUnderline":
-                    /*selectedText = textyView.textarea.getSelectedText();
-                    if(selectedText != null) {
-                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
-                        StyleConstants.setUnderline(newFontAttributes, true); 
-                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
-                    }
-                    else {*/
-                        StyleConstants.setUnderline(textyModel.fontAttributes, true); 
-                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
-                    //}
-                    textyView.underlineBtn.setBackground(DEPRESSED_BUTTON_BG);
-                    textyView.underlineBtn.setActionCommand("ToolbarUnline");
+                    setButtonState(textyView.underlineBtn, 1, "ToolbarUnline");
+                    setTextStyle("underline", true);
                     textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarUnline":
-                    /*selectedText = textyView.textarea.getSelectedText();
-                    if(selectedText != null) {
-                        SimpleAttributeSet newFontAttributes = new SimpleAttributeSet();
-                        StyleConstants.setUnderline(newFontAttributes, false); 
-                        textyView.textarea.setCharacterAttributes(newFontAttributes,false);
-                    }
-                    else {*/
-                        StyleConstants.setUnderline(textyModel.fontAttributes, false); 
-                        textyView.textarea.setCharacterAttributes(textyModel.fontAttributes,false);
-                    //}
-                    textyView.underlineBtn.setBackground(DEFAULT_BUTTON_BG);
-                    textyView.underlineBtn.setActionCommand("ToolbarUnderline");
+                    setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
+                    setTextStyle("underline", false);
                     textyView.textarea.requestFocusInWindow();
                     break;
             }
         }
     }
 
-    // Body of methods
+    // Document and toolbar styling
+    private void setButtonState(JButton btn, int isActive, String btnCommand) {
+        switch(isActive) {
+            case 0: //false
+                btn.setBackground(DEFAULT_BUTTON_BG);
+                break;
+            case 1: //true
+                btn.setBackground(DEPRESSED_BUTTON_BG);
+                break;
+        }
+        btn.setActionCommand(btnCommand);
+    }
+        
+    private void setTextStyle(String style, boolean isActive) {
+        final MutableAttributeSet BOLD = new SimpleAttributeSet();
+        final MutableAttributeSet ITALIC = new SimpleAttributeSet();
+        final MutableAttributeSet UNDERLINE = new SimpleAttributeSet();
+        switch(style) {
+            case "bold":
+                StyleConstants.setBold(BOLD, isActive); 
+                textyView.textarea.setTextyCharacterAttributes(BOLD, false);
+                break;
+            case "italic":
+                StyleConstants.setItalic(ITALIC, isActive); 
+                textyView.textarea.setTextyCharacterAttributes(ITALIC, false);
+                break;
+            case "underline":
+                StyleConstants.setUnderline(UNDERLINE, isActive); 
+                textyView.textarea.setTextyCharacterAttributes(UNDERLINE, false);
+                break;
+        }
+    }
+    
+    private void setTypeStyles(AttributeSet attributes) {
+        boolean isBold = StyleConstants.isBold(attributes);
+        boolean isItalic = StyleConstants.isItalic(attributes);
+        boolean isUnderlined = StyleConstants.isUnderline(attributes);
+        
+        if(isBold) {
+            setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
+            setTextStyle("bold", true);
+        }
+        else {
+            setButtonState(textyView.boldBtn, 0, "ToolbarEmbolden");
+            setTextStyle("bold", false);
+        }
+        
+        if(isItalic) {
+            setButtonState(textyView.italicBtn, 1, "ToolbarDetalicize");
+            setTextStyle("italic", true);
+        }
+        else {
+            setButtonState(textyView.italicBtn, 0, "ToolbarItalicize");
+            setTextStyle("italic", false);
+        }
+        
+        if(isUnderlined) {
+            setButtonState(textyView.underlineBtn, 1, "ToolbarUnline");
+            setTextStyle("underline", true);
+        }
+        else {
+            setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
+            setTextStyle("underline", false);
+        }
+    }
+    
+    private void setSelectionStyles(int pos1, int pos2) {
+        // order selectionStart and selectionEnd
+        int selectionStart;
+        int selectionEnd;
+        if(pos1 < pos2) {
+            selectionStart = pos1;
+            selectionEnd = pos2;
+        }
+        else {
+            selectionStart = pos2;
+            selectionEnd = pos1;
+        }
+        
+        int isBold = getSelectionStyleContinuity("bold", selectionStart, selectionEnd);
+        int isItalic = getSelectionStyleContinuity("italic", selectionStart, selectionEnd);
+        int isUnderline = getSelectionStyleContinuity("underline", selectionStart, selectionEnd);
+        
+        switch(isBold) {
+            case 0:
+                setButtonState(textyView.boldBtn, 0, "ToolbarEmbolden");
+                setTextStyle("bold", false);
+                break;
+            case 1:
+                setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
+                setTextStyle("bold", true);
+                break;
+            case 2:
+                setButtonState(textyView.boldBtn, 0, "ToolbarEmbolden");
+                break;
+        }
+        
+        switch(isItalic) {
+            case 0:
+                setButtonState(textyView.italicBtn, 0, "ToolbarItalicize");
+                setTextStyle("italic", false);
+                break;
+            case 1:
+                setButtonState(textyView.italicBtn, 1, "ToolbarDetalicize");
+                setTextStyle("italic", true);
+                break;
+            case 2:
+                setButtonState(textyView.italicBtn, 0, "ToolbarItalicize");
+                break;
+        }
+        
+        switch(isUnderline) {
+            case 0:
+                setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
+                setTextStyle("underline", false);
+                break;
+            case 1:
+                setButtonState(textyView.underlineBtn, 1, "ToolbarUnline");
+                setTextStyle("underline", true);
+                break;
+            case 2:
+                setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
+                break;
+        }
+    }
+    
+    private int getSelectionStyleContinuity(String style, int selectionStart, int selectionEnd) {
+        int totalChars = selectionEnd - selectionStart;
+        int styledChars = 0;
+        AttributeSet attributes;
+        boolean isStyled;
+        for(int i = selectionStart; i < selectionEnd; i++) {
+            Element charElement = textyModel.styleDoc.getCharacterElement(i);
+            attributes = charElement.getAttributes();
+            switch(style) {
+                case "bold":
+                    isStyled = StyleConstants.isBold(attributes);
+                    break;
+                case "italic":
+                    isStyled = StyleConstants.isItalic(attributes);
+                    break;
+                case "underline":
+                    isStyled = StyleConstants.isUnderline(attributes);
+                    break;
+                default:
+                    isStyled = false;
+                    break;
+            }
+            if(isStyled) styledChars++;
+        }
+        if(styledChars == 0) return 0; // if no characters are styled
+        else if(styledChars == totalChars) return 1; // if all characters are styled
+        else return 2; // if there is a mix of styled and unstyled characters
+    }
+    
+    // Open files
     private void openFile(File openFile) {
         String fullpath = openFile.getAbsolutePath();
         String filepath = TextyHelper.fixPath(fullpath.substring(0,fullpath.lastIndexOf(File.separator)));
@@ -273,18 +369,20 @@ public class TextyEvent {
             
             TextyModel newTextyEditor = new TextyModel(fileLocation, false);
             
-            if(doctype.equals("rtf")) {
-                RTFEditorKit rtfKit = new RTFEditorKit(); 
-                newTextyEditor.textyView.textarea.setEditorKit(rtfKit); 
-                FileInputStream fi = new FileInputStream(openFile); 
-                rtfKit.read( fi, newTextyEditor.textyView.textarea.getDocument(), 0 ); 
-            }
-            else if(doctype.equals("plain")){
-                String text;
-                while ((text = reader.readLine()) != null) {
-                    content += text;
-                }
-                newTextyEditor.textyView.textarea.setText(content);
+            switch (doctype) {
+                case "rtf":
+                    RTFEditorKit rtfKit = new RTFEditorKit();
+                    newTextyEditor.textyView.textarea.setEditorKit(rtfKit);
+                    FileInputStream fi = new FileInputStream(openFile);
+                    rtfKit.read( fi, newTextyEditor.textyView.textarea.getDocument(), 0 );
+                    break;
+                case "plain":
+                    String text;
+                    while ((text = reader.readLine()) != null) {
+                        content += text;
+                    }   
+                    newTextyEditor.textyView.textarea.setText(content);
+                    break;
             }
 
             TextyModel.globalFilepath = filepath;
@@ -295,7 +393,8 @@ public class TextyEvent {
             JOptionPane.showMessageDialog(textyView, "File Could Not Be Opened!\nError: "+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    
+    // Save files
     public boolean saveFile(File saveFile) {        
         boolean saveSuccess = false;
         
@@ -320,12 +419,18 @@ public class TextyEvent {
                     saveFile.createNewFile();
                 }
                 
+                String fullpath = saveFile.getAbsolutePath();
+                String filepath = TextyHelper.fixPath(fullpath.substring(0,fullpath.lastIndexOf(File.separator)));
+                String filename = saveFile.getName();
+                
                 RTFEditorKit kit = new RTFEditorKit();
-                StyledDocument doc = textyView.textarea.getStyledDocument();
-                kit.write(fileOut, doc, 0, textyView.textarea.getDocument().getLength());
+                kit.write(fileOut, textyModel.styleDoc, 0, textyView.textarea.getDocument().getLength());
 
                 JOptionPane.showMessageDialog(textyView, "File Saved!", "Success", JOptionPane.PLAIN_MESSAGE);
                 saveSuccess = true;
+                
+                textyView.setTitle("Texty - " + filename);
+                TextyModel.globalFilepath = filepath;
 
             } catch(IOException e) {
                 JOptionPane.showMessageDialog(textyView, "File was not saved!\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -354,11 +459,9 @@ public class TextyEvent {
                 
                 textyModel.fileIsNew = false;
                 
-                if(saveFile(saveFile)) {
-                    textyView.setTitle("Texty - " + filename);
-                    TextyModel.globalFilepath = filepath;
-                }
+                if(saveFile(saveFile));
                 else {
+                    textyModel.fileIsNew = true;
                     textyModel.setFilepath(oldFilepath);
                     textyModel.setFilename(oldFilename);
                 }
@@ -366,18 +469,6 @@ public class TextyEvent {
 
         } catch(Exception e) {
             JOptionPane.showMessageDialog(textyView, "File was not saved! " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void renameFile(String filename) {
-        try {
-            textyModel.setFilename(filename);
-            textyModel.fileIsNew = true;
-            textyView.setTitle("Texty - " + filename);
-            
-            TextyHelper.closeWindow(textyView.renameWin, textyView); // remove resource
-        } catch(Exception e) {
-            JOptionPane.showMessageDialog(textyView, "File could not be renamed!\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

@@ -18,7 +18,6 @@ public class TextyView extends JFrame {
     
     // Access to gui windows
     protected TextyView.SaveAnywayWin saveAnywayWin;
-    protected TextyView.RenameFileWin renameWin;
     
     // Menu Bar
     JMenuBar menuBar = new JMenuBar();
@@ -27,7 +26,6 @@ public class TextyView extends JFrame {
     private final JMenuItem openMenuBtn = new JMenuItem("Open");
     private final JMenuItem saveMenuBtn = new JMenuItem("Save");
     private final JMenuItem saveasMenuBtn = new JMenuItem("Save As");
-    private final JMenuItem renameMenuBtn = new JMenuItem("Rename");
     private final JMenuItem exitMenuBtn = new JMenuItem("Exit");
     
     // Toolbar
@@ -41,7 +39,7 @@ public class TextyView extends JFrame {
     
     // Document
     private final JPanel textareaPanel = new JPanel();
-    JTextPane textarea = new JTextPane();
+    TextyPane textarea = new TextyPane();
     private final JScrollPane scrollpane = new JScrollPane(textarea);
     private static final int JPANEL_WIDTH_INT = 700;
     private static final int JPANEL_HEIGHT_INT = 800;
@@ -74,12 +72,14 @@ public class TextyView extends JFrame {
         openMenuBtn.setActionCommand("FileMenuOpen");
         saveMenuBtn.setActionCommand("FileMenuSave");
         saveasMenuBtn.setActionCommand("FileMenuSaveAs");
-        renameMenuBtn.setActionCommand("FileMenuRename");
         exitMenuBtn.setActionCommand("FileMenuExit");
         // toolbar button actions
         boldBtn.setActionCommand("ToolbarEmbolden");
         italicBtn.setActionCommand("ToolbarItalicize");
         underlineBtn.setActionCommand("ToolbarUnderline");
+        // toolbar styledEditorKit actions
+        //Action boldAction = new StyledEditorKit.BoldAction();
+        //boldAction.putValue(Action.NAME, "Bold");
         
         setJMenuBar(menuBar);
         menuBar.add(fileMenu);
@@ -90,8 +90,6 @@ public class TextyView extends JFrame {
         fileMenu.add(saveMenuBtn);
         fileMenu.add(saveasMenuBtn);
         fileMenu.addSeparator();
-        fileMenu.add(renameMenuBtn);
-        fileMenu.addSeparator();
         fileMenu.add(exitMenuBtn);
         
         add(toolbarPanel, BorderLayout.NORTH);
@@ -99,6 +97,7 @@ public class TextyView extends JFrame {
         toolbar.add(boldBtn);
         toolbar.add(italicBtn);
         toolbar.add(underlineBtn);
+        //toolbar.add(boldAction);
         
         add(textareaPanel, BorderLayout.CENTER);
         textareaPanel.add(scrollpane);
@@ -109,9 +108,9 @@ public class TextyView extends JFrame {
         saveasMenuBtn.addActionListener(textyEvent.new SaveEvent());
         openMenuBtn.addActionListener(textyEvent.new OpenEvent());
         newMenuBtn.addActionListener(textyEvent.new NewEvent());
-        renameMenuBtn.addActionListener(textyEvent.new RenameEvent());
         exitMenuBtn.addActionListener(textyEvent.new ExitEvent());
         //toolbar
+        textarea.addCaretListener(textyEvent.new CaretEvent());
         boldBtn.addActionListener(textyEvent.new ToolbarEvent());
         italicBtn.addActionListener(textyEvent.new ToolbarEvent());
         underlineBtn.addActionListener(textyEvent.new ToolbarEvent());
@@ -174,51 +173,6 @@ public class TextyView extends JFrame {
             });
             
         }
-    }
-    
-    protected class RenameFileWin extends JFrame {       
-        private final JPanel renamePanel = new JPanel();
-        private final JLabel fileLabel = new JLabel("Filename:");
-        private final JTextField renameField;
-        private final JButton saveRenameBtn = new JButton("Rename");
-        
-        protected RenameFileWin() {
-            super("Rename File");
-            textyView.setEnabled(false);
-            
-            String currentFilename = textyModel.getFilename();
-            renameField = new JTextField(currentFilename);
-            renameField.setMargin(new Insets(0, 4, 0, 4));
-            
-            setLocationRelativeTo(null);
-            renameField.setPreferredSize(new Dimension(140, 30));
-            
-            renamePanel.add(fileLabel);
-            renamePanel.add(renameField);
-            renamePanel.add(saveRenameBtn);
-            add(renamePanel, BorderLayout.CENTER);
-            pack();
-            
-            setVisible(true);
-            setResizable(false);
-
-            renameField.requestFocusInWindow();
-            
-            saveRenameBtn.addActionListener(textyEvent.new RenameEvent());
-            
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    TextyHelper.closeWindow(renameWin, textyView); // remove resource
-                }
-            });
-            
-        }
-        
-        protected String getNewFilename() {
-            return renameField.getText();
-        }
-
     }
     
 }

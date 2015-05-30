@@ -3,6 +3,7 @@ package texty;
 import java.io.File;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyledDocument;
 
 /**
  *
@@ -23,7 +24,7 @@ public class TextyModel {
     private String filename;
     protected boolean fileIsNew;
     protected boolean saveAnyway;
-    protected SimpleAttributeSet fontAttributes;
+    protected StyledDocument styleDoc;
     
     public TextyModel() {
         this.saveAnyway = false;
@@ -36,7 +37,7 @@ public class TextyModel {
         filepath = TextyHelper.fixPath(fileLocation[0]);
         filename = fileLocation[1];
         textyView = new TextyView(filename, this);
-        fontAttributes = new SimpleAttributeSet();
+        styleDoc = textyView.textarea.getStyledDocument();
         instanceCount++;
     }
     
