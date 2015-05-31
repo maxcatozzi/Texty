@@ -18,12 +18,12 @@ public class TextyModel {
     private static final String DEFAULT_FILENAME = "New Document.txt";
     protected static String globalFilepath = DEFAULT_FILEPATH;
     private static int instanceCount = 0;
+    protected StyledDocument styleDoc;
     
     private String filepath;
     private String filename;
     protected boolean fileIsNew;
     protected boolean saveAnyway;
-    protected StyledDocument styleDoc;
     
     public TextyModel() {
         this.saveAnyway = false;
@@ -36,7 +36,7 @@ public class TextyModel {
         filepath = TextyHelper.fixPath(fileLocation[0]);
         filename = fileLocation[1];
         textyView = new TextyView(filename, this);
-        styleDoc = textyView.textarea.getStyledDocument();
+        styleDoc = textyView.textarea.getStyledDocument(); // doesn't work on opened files
         instanceCount++;
     }
     

@@ -134,7 +134,7 @@ public class TextyEvent {
             final int dot = e.getDot();
             final int mark = e.getMark();
             if(dot == mark) {
-                Element charElement = textyModel.styleDoc.getCharacterElement(dot);
+                Element charElement = textyView.textarea.getStyledDocument().getCharacterElement(dot);
                 AttributeSet attributes = charElement.getAttributes();
                 setTypeStyles(attributes);
             }
@@ -315,7 +315,7 @@ public class TextyEvent {
         AttributeSet attributes;
         boolean isStyled;
         for(int i = selectionStart; i < selectionEnd; i++) {
-            Element charElement = textyModel.styleDoc.getCharacterElement(i);
+            Element charElement = textyView.textarea.getStyledDocument().getCharacterElement(i);
             attributes = charElement.getAttributes();
             switch(style) {
                 case "bold":
@@ -374,7 +374,7 @@ public class TextyEvent {
                     RTFEditorKit rtfKit = new RTFEditorKit();
                     newTextyEditor.textyView.textarea.setEditorKit(rtfKit);
                     FileInputStream fi = new FileInputStream(openFile);
-                    rtfKit.read( fi, newTextyEditor.textyView.textarea.getDocument(), 0 );
+                    rtfKit.read( fi, newTextyEditor.textyView.textarea.getStyledDocument(), 0 );
                     break;
                 case "plain":
                     String text;
@@ -424,7 +424,7 @@ public class TextyEvent {
                 String filename = saveFile.getName();
                 
                 RTFEditorKit kit = new RTFEditorKit();
-                kit.write(fileOut, textyModel.styleDoc, 0, textyView.textarea.getDocument().getLength());
+                kit.write(fileOut, textyView.textarea.getStyledDocument(), 0, textyView.textarea.getDocument().getLength());
 
                 JOptionPane.showMessageDialog(textyView, "File Saved!", "Success", JOptionPane.PLAIN_MESSAGE);
                 saveSuccess = true;
