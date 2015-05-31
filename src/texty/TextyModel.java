@@ -2,7 +2,6 @@ package texty;
 
 import java.io.File;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyledDocument;
 
 /**

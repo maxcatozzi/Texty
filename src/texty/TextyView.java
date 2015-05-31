@@ -39,7 +39,7 @@ public class TextyView extends JFrame {
     
     // Document
     private final JPanel textareaPanel = new JPanel();
-    TextyPane textarea = new TextyPane();
+    JTextPane textarea = new JTextPane();
     private final JScrollPane scrollpane = new JScrollPane(textarea);
     private static final int JPANEL_WIDTH_INT = 700;
     private static final int JPANEL_HEIGHT_INT = 800;

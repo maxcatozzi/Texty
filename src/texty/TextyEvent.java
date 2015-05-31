@@ -203,15 +203,15 @@ public class TextyEvent {
         switch(style) {
             case "bold":
                 StyleConstants.setBold(BOLD, isActive); 
-                textyView.textarea.setTextyCharacterAttributes(BOLD, false);
+                textyView.textarea.setCharacterAttributes(BOLD, false);
                 break;
             case "italic":
                 StyleConstants.setItalic(ITALIC, isActive); 
-                textyView.textarea.setTextyCharacterAttributes(ITALIC, false);
+                textyView.textarea.setCharacterAttributes(ITALIC, false);
                 break;
             case "underline":
                 StyleConstants.setUnderline(UNDERLINE, isActive); 
-                textyView.textarea.setTextyCharacterAttributes(UNDERLINE, false);
+                textyView.textarea.setCharacterAttributes(UNDERLINE, false);
                 break;
         }
     }
