@@ -20,12 +20,12 @@ public class TextyModel {
     private String filepath;
     private String filename;
     protected boolean fileIsNew;
-    protected boolean saveAnyway;
+    protected boolean hasStyles;
     
     public TextyModel(String[] fileLocation, boolean newFile) {
-        this.saveAnyway = false;
+        hasStyles = false;
         fileIsNew = newFile;
-        filepath = TextyHelper.fixPath(fileLocation[0]);
+        filepath = TextyHelper.getFixedPath(fileLocation[0]);
         filename = fileLocation[1];
     }
     
@@ -47,7 +47,7 @@ public class TextyModel {
     }
     
     protected void setFilepath(String newPath) {
-        filepath = TextyHelper.fixPath(newPath);
+        filepath = TextyHelper.getFixedPath(newPath);
     }
     
     protected String getFilename() {

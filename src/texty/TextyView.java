@@ -36,7 +36,7 @@ public class TextyView extends JFrame {
     
     // Dialogs
     protected final JButton saveAnywayBtn = new JButton("Save Anyway");
-    protected final JButton cancelBtn = new JButton("Cancel");
+    protected final JButton saveAnywayCancelBtn = new JButton("Cancel");
     
     // Document
     private final JPanel textareaPanel = new JPanel();
@@ -131,11 +131,11 @@ public class TextyView extends JFrame {
             alreadyExists = new JLabel("File: \"" + fullFilepath + "\" already exists. Save anyway?");
             
             textyView.saveAnywayBtn.setActionCommand("SaveAnyway");
-            textyView.cancelBtn.setActionCommand("CancelSaveAnyway");
+            textyView.saveAnywayCancelBtn.setActionCommand("CancelSaveAnyway");
             
             northPanel.add(alreadyExists);
             southPanel.add(textyView.saveAnywayBtn);
-            southPanel.add(textyView.cancelBtn);
+            southPanel.add(textyView.saveAnywayCancelBtn);
             add(northPanel, BorderLayout.NORTH);
             add(southPanel, BorderLayout.SOUTH);
             pack();
