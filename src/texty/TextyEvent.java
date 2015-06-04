@@ -39,9 +39,33 @@ public class TextyEvent {
     TextyModel textyModel;
     TextyView textyView;
     
-    public TextyEvent(TextyView gui, TextyModel model) {
-        textyView = gui; 
-        textyModel = model;
+    public TextyEvent() {
+        String filepath = TextyModel.DEFAULT_FILEPATH;
+        String filename = TextyModel.DEFAULT_FILENAME;
+        TextyEvent textyEditor = new TextyEvent(new String[]{filepath,filename}, true);
+    }
+    
+    public TextyEvent(String[] fileLocation, boolean newFile) {
+        textyModel = new TextyModel(fileLocation, newFile);
+        textyView = new TextyView(fileLocation[1]);
+        textyModel.styledDoc = textyView.textarea.getStyledDocument();
+        TextyModel.addInstanceCount();
+        
+        // action listeners
+        // menu
+        textyView.saveMenuBtn.addActionListener(new SaveEvent());
+        textyView.saveasMenuBtn.addActionListener(new SaveEvent());
+        textyView.openMenuBtn.addActionListener(new OpenEvent());
+        textyView.newMenuBtn.addActionListener(new NewEvent());
+        textyView.exitMenuBtn.addActionListener(new ExitEvent());
+        // toolbar
+        textyView.textarea.addCaretListener(new CaretEvent());
+        textyView.boldBtn.addActionListener(new ToolbarEvent());
+        textyView.italicBtn.addActionListener(new ToolbarEvent());
+        textyView.underlineBtn.addActionListener(new ToolbarEvent());
+        // dialogs
+        textyView.saveAnywayBtn.addActionListener(new SaveEvent());
+        textyView.cancelBtn.addActionListener(new SaveEvent());
     }
     
     // Event Handlers
@@ -51,7 +75,7 @@ public class TextyEvent {
             String command = e.getActionCommand();
             switch(command){
                 case "FileMenuNew":
-                    TextyModel textyEditor = new TextyModel();
+                    TextyEvent textyEditor = new TextyEvent();
                     break;
             }
         }
@@ -134,7 +158,7 @@ public class TextyEvent {
             final int dot = e.getDot();
             final int mark = e.getMark();
             if(dot == mark) {
-                Element charElement = textyView.textarea.getStyledDocument().getCharacterElement(dot);
+                Element charElement = textyModel.styledDoc.getCharacterElement(dot - 1);
                 AttributeSet attributes = charElement.getAttributes();
                 setTypeStyles(attributes);
             }
@@ -315,7 +339,7 @@ public class TextyEvent {
         AttributeSet attributes;
         boolean isStyled;
         for(int i = selectionStart; i < selectionEnd; i++) {
-            Element charElement = textyView.textarea.getStyledDocument().getCharacterElement(i);
+            Element charElement = textyModel.styledDoc.getCharacterElement(i);
             attributes = charElement.getAttributes();
             switch(style) {
                 case "bold":
@@ -367,14 +391,14 @@ public class TextyEvent {
                     break;
             }
             
-            TextyModel newTextyEditor = new TextyModel(fileLocation, false);
+            TextyEvent newTextyEditor = new TextyEvent(fileLocation, false);
             
             switch (doctype) {
                 case "rtf":
                     RTFEditorKit rtfKit = new RTFEditorKit();
                     newTextyEditor.textyView.textarea.setEditorKit(rtfKit);
                     FileInputStream fi = new FileInputStream(openFile);
-                    rtfKit.read( fi, newTextyEditor.textyView.textarea.getStyledDocument(), 0 );
+                    rtfKit.read( fi, newTextyEditor.textyModel.styledDoc, 0 );
                     break;
                 case "plain":
                     String text;
@@ -400,7 +424,7 @@ public class TextyEvent {
         
         if(textyModel.fileIsNew) {
             if(saveFile.exists()) {
-                textyView.saveAnywayWin = textyView.new SaveAnywayWin();
+                textyView.saveAnywayWin = textyView.new SaveAnywayWin(textyModel.getFilepath(), textyModel.getFilename());
             }
             else {
                 JFileChooser fc = new JFileChooser(TextyModel.globalFilepath);
@@ -424,7 +448,7 @@ public class TextyEvent {
                 String filename = saveFile.getName();
                 
                 RTFEditorKit kit = new RTFEditorKit();
-                kit.write(fileOut, textyView.textarea.getStyledDocument(), 0, textyView.textarea.getDocument().getLength());
+                kit.write(fileOut, textyModel.styledDoc, 0, textyView.textarea.getDocument().getLength());
 
                 JOptionPane.showMessageDialog(textyView, "File Saved!", "Success", JOptionPane.PLAIN_MESSAGE);
                 saveSuccess = true;
@@ -453,7 +477,7 @@ public class TextyEvent {
             textyModel.setFilename(filename);
             
             if(saveFile.exists()) {
-                textyView.saveAnywayWin = textyView.new SaveAnywayWin();
+                textyView.saveAnywayWin = textyView.new SaveAnywayWin(textyModel.getFilepath(), textyModel.getFilepath());
             }
             else {
                 

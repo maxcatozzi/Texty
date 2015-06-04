@@ -9,7 +9,7 @@ public class Texty {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        TextyModel textyEditor = new TextyModel();
+        TextyEvent textyEditor = new TextyEvent();
     }
     
 }

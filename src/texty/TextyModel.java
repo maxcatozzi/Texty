@@ -10,39 +10,32 @@ import javax.swing.text.StyledDocument;
  */
 public class TextyModel {
     
-    // Access to View
-    protected TextyView textyView;
-    
     protected static final String DS = File.separator;
-    private static final String DEFAULT_FILEPATH = FileSystemView.getFileSystemView().getDefaultDirectory().toPath().toString();
-    private static final String DEFAULT_FILENAME = "New Document.txt";
+    protected static final String DEFAULT_FILEPATH = FileSystemView.getFileSystemView().getDefaultDirectory().toPath().toString();
+    protected static final String DEFAULT_FILENAME = "New Document.txt";
     protected static String globalFilepath = DEFAULT_FILEPATH;
     private static int instanceCount = 0;
-    protected StyledDocument styleDoc;
     
+    protected StyledDocument styledDoc;
     private String filepath;
     private String filename;
     protected boolean fileIsNew;
     protected boolean saveAnyway;
-    
-    public TextyModel() {
-        this.saveAnyway = false;
-        TextyModel textyEditor = new TextyModel(new String[]{DEFAULT_FILEPATH,DEFAULT_FILENAME}, true);
-    }
     
     public TextyModel(String[] fileLocation, boolean newFile) {
         this.saveAnyway = false;
         fileIsNew = newFile;
         filepath = TextyHelper.fixPath(fileLocation[0]);
         filename = fileLocation[1];
-        textyView = new TextyView(filename, this);
-        styleDoc = textyView.textarea.getStyledDocument(); // doesn't work on opened files
-        instanceCount++;
     }
     
     // Getters and setters
     public static void removeInstance() {
         instanceCount--;
+    }
+    
+    public static void addInstanceCount() {
+        instanceCount++;
     }
 
     public static int getInstanceCount() {
