@@ -2,6 +2,8 @@ package texty;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -13,8 +15,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -49,7 +49,11 @@ public class TextyEvent {
         textyModel = new TextyModel(fileLocation, newFile);
         textyView = new TextyView(fileLocation[1]);
         textyModel.styledDoc = textyView.textarea.getStyledDocument();
-        TextyModel.addInstanceCount();
+        TextyModel.addInstanceCount();   
+        textyModel.fontName = (String)textyView.fontFamilyChooser.getSelectedItem();
+        textyModel.fontSize = Integer.parseInt((String) textyView.fontSizeChooser.getSelectedItem());
+        setTextFontSize(textyModel.fontSize);
+        setTextFontFamily(textyModel.fontName);
         
         // action listeners
         // menu
@@ -63,6 +67,8 @@ public class TextyEvent {
         textyView.boldBtn.addActionListener(new ToolbarEvent());
         textyView.italicBtn.addActionListener(new ToolbarEvent());
         textyView.underlineBtn.addActionListener(new ToolbarEvent());
+        textyView.fontSizeChooser.addItemListener(new ToolbarEvent());
+        textyView.fontFamilyChooser.addItemListener(new ToolbarEvent());
         // dialogs
         textyView.saveAnywayBtn.addActionListener(new SaveEvent());
         textyView.saveAnywayCancelBtn.addActionListener(new SaveEvent());
@@ -174,7 +180,7 @@ public class TextyEvent {
         }    
     }
     
-    class ToolbarEvent implements ActionListener {
+    class ToolbarEvent implements ActionListener, ItemListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
@@ -182,33 +188,41 @@ public class TextyEvent {
                 case "ToolbarEmbolden":
                     setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
                     setTextStyle("bold", true);
-                    textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarUnbold":
                     setButtonState(textyView.boldBtn, 0, "ToolbarEmbolden");
                     setTextStyle("bold", false);
-                    textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarItalicize":
                     setButtonState(textyView.italicBtn, 1, "ToolbarDetalicize");
                     setTextStyle("italic", true);
-                    textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarDetalicize":
                     setButtonState(textyView.italicBtn, 0, "ToolbarItalicize");
                     setTextStyle("italic", false);
-                    textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarUnderline":
                     setButtonState(textyView.underlineBtn, 1, "ToolbarUnline");
                     setTextStyle("underline", true);
-                    textyView.textarea.requestFocusInWindow();
                     break;
                 case "ToolbarUnline":
                     setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
                     setTextStyle("underline", false);
-                    textyView.textarea.requestFocusInWindow();
                     break;
+            }
+        }
+
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+            if(e.getStateChange()==ItemEvent.SELECTED){
+                if(e.getSource() == textyView.fontFamilyChooser) {
+                    String fontName = (String) e.getItem();
+                    setTextFontFamily(fontName);
+                }
+                else if(e.getSource() == textyView.fontSizeChooser) {
+                    int fontSize = Integer.parseInt((String) e.getItem());
+                    setTextFontSize(fontSize);
+                }
             }
         }
     }
@@ -224,6 +238,20 @@ public class TextyEvent {
                 break;
         }
         btn.setActionCommand(btnCommand);
+    }
+    
+    private void setTextFontSize(int fontSize) {
+        MutableAttributeSet setFontSize = new SimpleAttributeSet();
+        StyleConstants.setFontSize(setFontSize, fontSize); 
+        textyView.textarea.setCharacterAttributes(setFontSize, false);
+        textyView.textarea.requestFocusInWindow();
+    }
+    
+    private void setTextFontFamily(String fontName) {
+        MutableAttributeSet setFontName = new SimpleAttributeSet();
+        StyleConstants.setFontFamily(setFontName, fontName); 
+        textyView.textarea.setCharacterAttributes(setFontName, false);
+        textyView.textarea.requestFocusInWindow();
     }
         
     private void setTextStyle(String style, boolean isActive) {
@@ -247,6 +275,7 @@ public class TextyEvent {
         if(isActive) {
             textyModel.hasStyles = true;
         }
+        textyView.textarea.requestFocusInWindow();
     }
     
     private void setTypeStyles(AttributeSet attributes) {
@@ -378,12 +407,13 @@ public class TextyEvent {
         String[] fileLocation = new String[]{filepath,filename};
 
         try(BufferedReader reader = new BufferedReader(new FileReader(openFile))) {
+            TextyEvent newTextyEditor = new TextyEvent(fileLocation, false);
             String content = "";
-            String doctype;
+            
+            String doctype; // check if file contains styled text
             InputStream checkMimeInput = new BufferedInputStream(new FileInputStream(openFile));
             String mimeType = URLConnection.guessContentTypeFromStream(checkMimeInput);
             if(mimeType == null) mimeType = URLConnection.guessContentTypeFromName(openFile.getName());
-            
             switch(mimeType){
                 case "application/rtf":
                     doctype = "rtf";
@@ -399,16 +429,14 @@ public class TextyEvent {
                     break;
             }
             
-            TextyEvent newTextyEditor = new TextyEvent(fileLocation, false);
-            
             switch (doctype) {
-                case "rtf":
+                case "rtf": // open as rich text
                     RTFEditorKit rtfKit = new RTFEditorKit();
                     newTextyEditor.textyView.textarea.setEditorKit(rtfKit);
                     FileInputStream fi = new FileInputStream(openFile);
                     rtfKit.read( fi, newTextyEditor.textyModel.styledDoc, 0 );
                     break;
-                case "plain":
+                case "plain": // open as plain text
                     String text;
                     while ((text = reader.readLine()) != null) {
                         content += text;
@@ -421,8 +449,10 @@ public class TextyEvent {
 
         } catch (FileNotFoundException e) {
             JOptionPane.showMessageDialog(textyView, "File Not Found!\nError: The file \"" + filepath + filename + "\" does not exist", "Error", JOptionPane.ERROR_MESSAGE);
+            TextyHelper.closeWindow(textyView, textyView);
         } catch (IOException | BadLocationException e) {
             JOptionPane.showMessageDialog(textyView, "File Could Not Be Opened!\nError: "+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            TextyHelper.closeWindow(textyView, textyView);
         }
     }
     
@@ -434,7 +464,7 @@ public class TextyEvent {
         String filename = saveFile.getName();
         String fileExt = TextyHelper.getFileExtension(filename);
         
-        if(fileExt.equals("")) { // check/fix file extension
+        if(fileExt.equals("")) { // check and fix file extension
             fileExt = "txt";
             filename += ".txt";
             saveFile = new File(saveFile.getParentFile(), filename);
@@ -445,7 +475,7 @@ public class TextyEvent {
             filepath = TextyHelper.getFixedPath(saveFile.getAbsolutePath());
         }
         
-        if(textyModel.fileIsNew) {
+        if(textyModel.fileIsNew) { // check if first ever save
             JFileChooser fc = new JFileChooser(TextyModel.globalFilepath);
             fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             fc.setSelectedFile(new File(textyModel.getFilename()));
@@ -468,7 +498,7 @@ public class TextyEvent {
                     kit.write(fileOut, textyModel.styledDoc, 0, textyView.textarea.getDocument().getLength());
                 }
                 else {
-                    if(textyModel.hasStyles) {
+                    if(textyModel.hasStyles) { // if document has styles applied, they will be lost upon save
                         JOptionPane.showMessageDialog(textyView, "Saving as plain text will not save styles and formatting.", "Warning - Styles Will Be Lost", JOptionPane.WARNING_MESSAGE);
                     }
                     String content = textyView.textarea.getText();
@@ -481,10 +511,8 @@ public class TextyEvent {
                 textyView.setTitle("Texty - " + filename);
                 TextyModel.globalFilepath = filepath;
 
-            } catch(IOException e) {
+            } catch(IOException | BadLocationException e) {
                 JOptionPane.showMessageDialog(textyView, "File was not saved!\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (BadLocationException ex) {
-                Logger.getLogger(TextyEvent.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return saveSuccess;

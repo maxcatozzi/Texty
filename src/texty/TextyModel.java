@@ -10,17 +10,20 @@ import javax.swing.text.StyledDocument;
  */
 public class TextyModel {
     
-    protected static final String DS = File.separator;
+    protected static final String DS = File.separator; // get system directory seperator
     protected static final String DEFAULT_FILEPATH = FileSystemView.getFileSystemView().getDefaultDirectory().toPath().toString();
     protected static final String DEFAULT_FILENAME = "New Document.txt";
     protected static String globalFilepath = DEFAULT_FILEPATH;
     private static int instanceCount = 0;
     
-    protected StyledDocument styledDoc;
     private String filepath;
     private String filename;
     protected boolean fileIsNew;
     protected boolean hasStyles;
+    
+    protected StyledDocument styledDoc;
+    protected String fontName;
+    protected int fontSize;
     
     public TextyModel(String[] fileLocation, boolean newFile) {
         hasStyles = false;

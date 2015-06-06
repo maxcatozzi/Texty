@@ -33,6 +33,9 @@ public class TextyView extends JFrame {
     protected final JButton boldBtn = new JButton("Bold");
     protected final JButton italicBtn = new JButton("Italic");
     protected final JButton underlineBtn = new JButton("Underline");
+    private final JLabel fontLabel = new JLabel("Font:");
+    protected final JComboBox fontFamilyChooser;
+    protected final JComboBox fontSizeChooser;
     
     // Dialogs
     protected final JButton saveAnywayBtn = new JButton("Save Anyway");
@@ -50,9 +53,27 @@ public class TextyView extends JFrame {
         
         textyView = this;
         
+        // get fonts for fontChooser combo box
+        GraphicsEnvironment localGraphics = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        Font[] fonts = localGraphics.getAllFonts();
+        String[] fontNames = new String[fonts.length];
+        int selectedIndex = 0;
+        for(int i = 0; i < fonts.length; i++) {
+          fontNames[i] = fonts[i].getFontName();
+          if(fontNames[i].equals("Arial")) selectedIndex = i;
+        }
+        fontFamilyChooser = new JComboBox(fontNames);
+        fontFamilyChooser.setSelectedIndex(selectedIndex);
+        
+        String[] fontSizes = { "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72" };
+        fontSizeChooser = new JComboBox(fontSizes);
+        fontSizeChooser.setSelectedIndex(4);
+        
         setSize(new Dimension(JPANEL_WIDTH_INT, JPANEL_HEIGHT_INT));
         setLocationRelativeTo(null);
         toolbarPanel.setPreferredSize(new Dimension(JPANEL_WIDTH_INT, 30));
+        fontFamilyChooser.setMaximumSize(new Dimension(200, 20));
+        fontSizeChooser.setMaximumSize(new Dimension(50, 20));
         
         UIManager.put("PopupMenu.border", BorderFactory.createLineBorder(Color.GRAY, 1));
         UIManager.put("Separator.foreground", Color.LIGHT_GRAY);
@@ -61,6 +82,7 @@ public class TextyView extends JFrame {
         toolbar.setFloatable(false);
         
         textarea.setBorder(new EmptyBorder(10, 10, 10, 10));
+        fontLabel.setBorder(new EmptyBorder(0, 15, 0, 5));
         
         setLayout(new BorderLayout());
         toolbarPanel.setLayout(new BorderLayout());
@@ -93,6 +115,9 @@ public class TextyView extends JFrame {
         toolbar.add(boldBtn);
         toolbar.add(italicBtn);
         toolbar.add(underlineBtn);
+        toolbar.add(fontLabel);
+        toolbar.add(fontSizeChooser);
+        toolbar.add(fontFamilyChooser);
         
         add(textareaPanel, BorderLayout.CENTER);
         textareaPanel.add(scrollpane);

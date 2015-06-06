@@ -1,6 +1,5 @@
 package texty;
 
-import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
@@ -28,9 +27,9 @@ public class TextyHelper {
         String filepath;
         
         // check if path has filename
-        String endpath = path.substring(path.lastIndexOf(File.separator), path.length());
+        String endpath = path.substring(path.lastIndexOf(DS), path.length());
         if(endpath.contains(".")) {
-            path = path.substring(0,path.lastIndexOf(File.separator));
+            path = path.substring(0,path.lastIndexOf(DS));
         }
         
         if(!path.substring(path.length()-1).equals(DS)) { // append backslash to filepath if filepath does not end in a backslash
