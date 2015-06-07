@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 import javax.swing.event.CaretListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -47,12 +48,14 @@ public class TextyEvent {
     public TextyEvent(String[] fileLocation, boolean newFile) {
         textyModel = new TextyModel(fileLocation, newFile);
         textyView = new TextyView(fileLocation[1]);
-        textyModel.styledDoc = textyView.textarea.getStyledDocument();
         TextyModel.addInstanceCount();   
-        textyModel.fontName = (String)textyView.fontFamilyChooser.getSelectedItem();
-        textyModel.fontSize = Integer.parseInt((String) textyView.fontSizeChooser.getSelectedItem());
-        setTextFontFamily(textyModel.fontName);
-        setTextFontSize(textyModel.fontSize);
+        if(newFile) {
+            textyModel.styledDoc = textyView.textarea.getStyledDocument();
+            textyModel.fontName = (String)textyView.fontFamilyChooser.getSelectedItem();
+            textyModel.fontSize = Integer.parseInt((String) textyView.fontSizeChooser.getSelectedItem());
+            setTextFontFamily(textyModel.fontName);
+            setTextFontSize(textyModel.fontSize);
+        }
         
         // action listeners
         // menu
@@ -183,17 +186,19 @@ public class TextyEvent {
         @Override
         public void actionPerformed(ActionEvent e) {   
             if(e.getSource() == textyView.fontFamilyChooser) {
+                Caret cursorPos = textyView.textarea.getCaret();
                 String fontName = (String) textyView.fontFamilyChooser.getSelectedItem();
-                if(!fontName.equals("Choose Font")) setTextFontFamily(fontName);
-                else textyView.fontFamilyChooser.setSelectedItem(textyModel.fontName);
+                if(!fontName.equals("- Choose Font -")) setTextFontFamily(fontName);
+                else if(cursorPos.getDot() == cursorPos.getMark()) textyView.fontFamilyChooser.setSelectedItem(textyModel.fontName);
             }
             else if(e.getSource() == textyView.fontSizeChooser) {
+                Caret cursorPos = textyView.textarea.getCaret();
                 String fontSizeString = (String) textyView.fontSizeChooser.getSelectedItem();
-                if(!fontSizeString.equals("--")) {
+                if(!fontSizeString.equals("- -")) {
                     int fontSize = Integer.parseInt(fontSizeString);
                     setTextFontSize(fontSize);
                 }
-                else textyView.fontSizeChooser.setSelectedItem(Integer.toString(textyModel.fontSize));
+                else if(cursorPos.getDot() == cursorPos.getMark()) textyView.fontSizeChooser.setSelectedItem(Integer.toString(textyModel.fontSize));
             }
             else { // buttons
                 String command = e.getActionCommand();
@@ -245,12 +250,15 @@ public class TextyEvent {
         combo.setSelectedItem(selection);
     }
     
+    private void setComboSelection(JComboBox combo, int selection) {
+        combo.setSelectedIndex(selection);
+    }
+    
     private void setTextFontSize(int fontSize) {
         textyModel.fontSize = fontSize;
         MutableAttributeSet setFontSize = new SimpleAttributeSet();
         StyleConstants.setFontSize(setFontSize, fontSize); 
         textyView.textarea.setCharacterAttributes(setFontSize, false);
-        textyModel.styledDoc = textyView.textarea.getStyledDocument();
     }
     
     private void setTextFontFamily(String fontName) {
@@ -258,7 +266,6 @@ public class TextyEvent {
         MutableAttributeSet setFontName = new SimpleAttributeSet();
         StyleConstants.setFontFamily(setFontName, fontName); 
         textyView.textarea.setCharacterAttributes(setFontName, false);
-        textyModel.styledDoc = textyView.textarea.getStyledDocument();
     }
         
     private void setTextStyle(String style, boolean isActive) {
@@ -282,7 +289,6 @@ public class TextyEvent {
         if(isActive) {
             textyModel.hasStyles = true;
         }
-        textyModel.styledDoc = textyView.textarea.getStyledDocument();
     }
     
     private void setTypeStyles(AttributeSet attributes) {
@@ -291,8 +297,6 @@ public class TextyEvent {
         boolean isUnderlined = StyleConstants.isUnderline(attributes);
         String textFontFamily = StyleConstants.getFontFamily(attributes);
         int textFontSize = StyleConstants.getFontSize(attributes);
-        
-        if(textFontFamily.equals("Dialog")) textFontFamily = textyModel.fontName;
         
         if(isBold) {
             setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
@@ -393,13 +397,15 @@ public class TextyEvent {
             setComboSelection(textyView.fontFamilyChooser, selectionFontFamily);
             setTextFontFamily(selectionFontFamily);
         }
-        else setComboSelection(textyView.fontFamilyChooser, "Choose Font");
+        else setComboSelection(textyView.fontFamilyChooser, 0);
         
         if(!selectionFontSize.equals("")) {
             setComboSelection(textyView.fontSizeChooser, selectionFontSize);
             setTextFontSize(Integer.parseInt(selectionFontSize));
         }
-        else setComboSelection(textyView.fontSizeChooser, "--");
+        else {
+            setComboSelection(textyView.fontSizeChooser, 0);
+        }
         
         
     }
@@ -499,6 +505,8 @@ public class TextyEvent {
                     RTFEditorKit rtfKit = new RTFEditorKit();
                     newTextyEditor.textyView.textarea.setEditorKit(rtfKit);
                     FileInputStream fi = new FileInputStream(openFile);
+                    
+                    newTextyEditor.textyModel.styledDoc = newTextyEditor.textyView.textarea.getStyledDocument();
                     rtfKit.read( fi, newTextyEditor.textyModel.styledDoc, 0 );
                     break;
                 case "plain": // open as plain text
@@ -560,7 +568,7 @@ public class TextyEvent {
                 
                 if(fileExt.equals("rtf")) {
                     RTFEditorKit kit = new RTFEditorKit();
-                    kit.write(fileOut, textyModel.styledDoc, 0, textyView.textarea.getDocument().getLength());
+                    kit.write(fileOut, textyModel.styledDoc, 0, textyModel.styledDoc.getLength());
                 }
                 else {
                     if(textyModel.hasStyles) { // if document has styles applied, they will be lost upon save

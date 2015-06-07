@@ -1,6 +1,7 @@
 package texty;
 
 import java.awt.*;
+import static java.awt.Font.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -58,7 +59,7 @@ public class TextyView extends JFrame {
         Font[] fonts = localGraphics.getAllFonts();
         String[] fontNames = new String[fonts.length + 1];
         int selectedIndex = 0;
-        fontNames[0] = "Choose Font";
+        fontNames[0] = "- Choose Font -";
         for(int i = 1; i < fonts.length; i++) {
           fontNames[i] = fonts[i].getFontName();
           if(fontNames[i].equals("Arial")) selectedIndex = i;
@@ -66,9 +67,15 @@ public class TextyView extends JFrame {
         fontFamilyChooser = new JComboBox(fontNames);
         fontFamilyChooser.setSelectedIndex(selectedIndex);
         
-        String[] fontSizes = { "--", "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72" };
+        String[] fontSizes = { "- -", "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72" };
         fontSizeChooser = new JComboBox(fontSizes);
         fontSizeChooser.setSelectedIndex(5);
+        
+        // set document default text
+        String defaultFontFamily = fonts[selectedIndex].getFontName();
+        int defaultFontSize = Integer.parseInt(fontSizes[5]);
+        Font defaultFont = new Font(defaultFontFamily, PLAIN, defaultFontSize);
+        UIManager.put("TextPane.font",defaultFont);
         
         setSize(new Dimension(JPANEL_WIDTH_INT, JPANEL_HEIGHT_INT));
         setLocationRelativeTo(null);
