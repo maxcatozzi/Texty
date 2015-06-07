@@ -56,18 +56,19 @@ public class TextyView extends JFrame {
         // get fonts for fontChooser combo box
         GraphicsEnvironment localGraphics = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Font[] fonts = localGraphics.getAllFonts();
-        String[] fontNames = new String[fonts.length];
+        String[] fontNames = new String[fonts.length + 1];
         int selectedIndex = 0;
-        for(int i = 0; i < fonts.length; i++) {
+        fontNames[0] = "Choose Font";
+        for(int i = 1; i < fonts.length; i++) {
           fontNames[i] = fonts[i].getFontName();
           if(fontNames[i].equals("Arial")) selectedIndex = i;
         }
         fontFamilyChooser = new JComboBox(fontNames);
         fontFamilyChooser.setSelectedIndex(selectedIndex);
         
-        String[] fontSizes = { "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72" };
+        String[] fontSizes = { "--", "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72" };
         fontSizeChooser = new JComboBox(fontSizes);
-        fontSizeChooser.setSelectedIndex(4);
+        fontSizeChooser.setSelectedIndex(5);
         
         setSize(new Dimension(JPANEL_WIDTH_INT, JPANEL_HEIGHT_INT));
         setLocationRelativeTo(null);

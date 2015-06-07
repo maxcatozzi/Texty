@@ -2,8 +2,6 @@ package texty;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -16,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.CaretListener;
@@ -52,8 +51,8 @@ public class TextyEvent {
         TextyModel.addInstanceCount();   
         textyModel.fontName = (String)textyView.fontFamilyChooser.getSelectedItem();
         textyModel.fontSize = Integer.parseInt((String) textyView.fontSizeChooser.getSelectedItem());
-        setTextFontSize(textyModel.fontSize);
         setTextFontFamily(textyModel.fontName);
+        setTextFontSize(textyModel.fontSize);
         
         // action listeners
         // menu
@@ -67,8 +66,8 @@ public class TextyEvent {
         textyView.boldBtn.addActionListener(new ToolbarEvent());
         textyView.italicBtn.addActionListener(new ToolbarEvent());
         textyView.underlineBtn.addActionListener(new ToolbarEvent());
-        textyView.fontSizeChooser.addItemListener(new ToolbarEvent());
-        textyView.fontFamilyChooser.addItemListener(new ToolbarEvent());
+        textyView.fontSizeChooser.addActionListener(new ToolbarEvent());
+        textyView.fontFamilyChooser.addActionListener(new ToolbarEvent());
         // dialogs
         textyView.saveAnywayBtn.addActionListener(new SaveEvent());
         textyView.saveAnywayCancelBtn.addActionListener(new SaveEvent());
@@ -180,50 +179,52 @@ public class TextyEvent {
         }    
     }
     
-    class ToolbarEvent implements ActionListener, ItemListener {
+    class ToolbarEvent implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
-            String command = e.getActionCommand();
-            switch(command){
-                case "ToolbarEmbolden":
-                    setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
-                    setTextStyle("bold", true);
-                    break;
-                case "ToolbarUnbold":
-                    setButtonState(textyView.boldBtn, 0, "ToolbarEmbolden");
-                    setTextStyle("bold", false);
-                    break;
-                case "ToolbarItalicize":
-                    setButtonState(textyView.italicBtn, 1, "ToolbarDetalicize");
-                    setTextStyle("italic", true);
-                    break;
-                case "ToolbarDetalicize":
-                    setButtonState(textyView.italicBtn, 0, "ToolbarItalicize");
-                    setTextStyle("italic", false);
-                    break;
-                case "ToolbarUnderline":
-                    setButtonState(textyView.underlineBtn, 1, "ToolbarUnline");
-                    setTextStyle("underline", true);
-                    break;
-                case "ToolbarUnline":
-                    setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
-                    setTextStyle("underline", false);
-                    break;
+        public void actionPerformed(ActionEvent e) {   
+            if(e.getSource() == textyView.fontFamilyChooser) {
+                String fontName = (String) textyView.fontFamilyChooser.getSelectedItem();
+                if(!fontName.equals("Choose Font")) setTextFontFamily(fontName);
+                else textyView.fontFamilyChooser.setSelectedItem(textyModel.fontName);
             }
-        }
-
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-            if(e.getStateChange()==ItemEvent.SELECTED){
-                if(e.getSource() == textyView.fontFamilyChooser) {
-                    String fontName = (String) e.getItem();
-                    setTextFontFamily(fontName);
-                }
-                else if(e.getSource() == textyView.fontSizeChooser) {
-                    int fontSize = Integer.parseInt((String) e.getItem());
+            else if(e.getSource() == textyView.fontSizeChooser) {
+                String fontSizeString = (String) textyView.fontSizeChooser.getSelectedItem();
+                if(!fontSizeString.equals("--")) {
+                    int fontSize = Integer.parseInt(fontSizeString);
                     setTextFontSize(fontSize);
                 }
+                else textyView.fontSizeChooser.setSelectedItem(Integer.toString(textyModel.fontSize));
             }
+            else { // buttons
+                String command = e.getActionCommand();
+                switch(command){
+                    case "ToolbarEmbolden":
+                        setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
+                        setTextStyle("bold", true);
+                        break;
+                    case "ToolbarUnbold":
+                        setButtonState(textyView.boldBtn, 0, "ToolbarEmbolden");
+                        setTextStyle("bold", false);
+                        break;
+                    case "ToolbarItalicize":
+                        setButtonState(textyView.italicBtn, 1, "ToolbarDetalicize");
+                        setTextStyle("italic", true);
+                        break;
+                    case "ToolbarDetalicize":
+                        setButtonState(textyView.italicBtn, 0, "ToolbarItalicize");
+                        setTextStyle("italic", false);
+                        break;
+                    case "ToolbarUnderline":
+                        setButtonState(textyView.underlineBtn, 1, "ToolbarUnline");
+                        setTextStyle("underline", true);
+                        break;
+                    case "ToolbarUnline":
+                        setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
+                        setTextStyle("underline", false);
+                        break;
+                }
+            }
+            textyView.textarea.requestFocusInWindow();
         }
     }
 
@@ -240,18 +241,24 @@ public class TextyEvent {
         btn.setActionCommand(btnCommand);
     }
     
+    private void setComboSelection(JComboBox combo, String selection) {
+        combo.setSelectedItem(selection);
+    }
+    
     private void setTextFontSize(int fontSize) {
+        textyModel.fontSize = fontSize;
         MutableAttributeSet setFontSize = new SimpleAttributeSet();
         StyleConstants.setFontSize(setFontSize, fontSize); 
         textyView.textarea.setCharacterAttributes(setFontSize, false);
-        textyView.textarea.requestFocusInWindow();
+        textyModel.styledDoc = textyView.textarea.getStyledDocument();
     }
     
     private void setTextFontFamily(String fontName) {
+        textyModel.fontName = fontName;
         MutableAttributeSet setFontName = new SimpleAttributeSet();
         StyleConstants.setFontFamily(setFontName, fontName); 
         textyView.textarea.setCharacterAttributes(setFontName, false);
-        textyView.textarea.requestFocusInWindow();
+        textyModel.styledDoc = textyView.textarea.getStyledDocument();
     }
         
     private void setTextStyle(String style, boolean isActive) {
@@ -275,13 +282,17 @@ public class TextyEvent {
         if(isActive) {
             textyModel.hasStyles = true;
         }
-        textyView.textarea.requestFocusInWindow();
+        textyModel.styledDoc = textyView.textarea.getStyledDocument();
     }
     
     private void setTypeStyles(AttributeSet attributes) {
         boolean isBold = StyleConstants.isBold(attributes);
         boolean isItalic = StyleConstants.isItalic(attributes);
         boolean isUnderlined = StyleConstants.isUnderline(attributes);
+        String textFontFamily = StyleConstants.getFontFamily(attributes);
+        int textFontSize = StyleConstants.getFontSize(attributes);
+        
+        if(textFontFamily.equals("Dialog")) textFontFamily = textyModel.fontName;
         
         if(isBold) {
             setButtonState(textyView.boldBtn, 1, "ToolbarUnbold");
@@ -309,6 +320,12 @@ public class TextyEvent {
             setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
             setTextStyle("underline", false);
         }
+        
+        setComboSelection(textyView.fontFamilyChooser, textFontFamily);
+        setTextFontFamily(textFontFamily);
+        setComboSelection(textyView.fontSizeChooser, Integer.toString(textFontSize));
+        setTextFontSize(textFontSize);
+        
     }
     
     private void setSelectionStyles(int pos1, int pos2) {
@@ -327,6 +344,8 @@ public class TextyEvent {
         int isBold = getSelectionStyleContinuity("bold", selectionStart, selectionEnd);
         int isItalic = getSelectionStyleContinuity("italic", selectionStart, selectionEnd);
         int isUnderline = getSelectionStyleContinuity("underline", selectionStart, selectionEnd);
+        String selectionFontFamily = getSelectionFontContinuity("font", selectionStart, selectionEnd);
+        String selectionFontSize = getSelectionFontContinuity("size", selectionStart, selectionEnd);
         
         switch(isBold) {
             case 0:
@@ -369,8 +388,23 @@ public class TextyEvent {
                 setButtonState(textyView.underlineBtn, 0, "ToolbarUnderline");
                 break;
         }
+        
+        if(!selectionFontFamily.equals("")) {
+            setComboSelection(textyView.fontFamilyChooser, selectionFontFamily);
+            setTextFontFamily(selectionFontFamily);
+        }
+        else setComboSelection(textyView.fontFamilyChooser, "Choose Font");
+        
+        if(!selectionFontSize.equals("")) {
+            setComboSelection(textyView.fontSizeChooser, selectionFontSize);
+            setTextFontSize(Integer.parseInt(selectionFontSize));
+        }
+        else setComboSelection(textyView.fontSizeChooser, "--");
+        
+        
     }
     
+    // check if entire selected string has same styles
     private int getSelectionStyleContinuity(String style, int selectionStart, int selectionEnd) {
         int totalChars = selectionEnd - selectionStart;
         int styledChars = 0;
@@ -398,6 +432,37 @@ public class TextyEvent {
         if(styledChars == 0) return 0; // if no characters are styled
         else if(styledChars == totalChars) return 1; // if all characters are styled
         else return 2; // if there is a mix of styled and unstyled characters
+    }
+    
+    // check if entire selected string has same font family/size
+    private String getSelectionFontContinuity(String checkType, int selectionStart, int selectionEnd) {
+        int totalChars = selectionEnd - selectionStart;
+        int sameTypeChars = 0;
+        AttributeSet attributes;
+        String fontStyle = "";
+        String currentCharFontStyle;
+        for(int i = selectionStart; i < selectionEnd; i++) {
+            Element charElement = textyModel.styledDoc.getCharacterElement(i);
+            attributes = charElement.getAttributes();
+            switch(checkType) {
+                case "font":
+                    currentCharFontStyle = StyleConstants.getFontFamily(attributes);
+                    if(i == selectionStart) fontStyle = currentCharFontStyle; // get font of first character to be compared to rest of string
+                    break;
+                case "size":
+                    currentCharFontStyle = Integer.toString(StyleConstants.getFontSize(attributes));
+                    if(i == selectionStart) fontStyle = currentCharFontStyle; // get size of first character to be compared to rest of string
+                    break;
+                default:
+                    currentCharFontStyle = "";
+                    break;
+            }
+            if(fontStyle.equals(currentCharFontStyle)) {
+                sameTypeChars++;
+            }
+        }
+        if(sameTypeChars == totalChars) return fontStyle;
+        else return "";
     }
     
     // Open files
