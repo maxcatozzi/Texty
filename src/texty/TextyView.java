@@ -14,9 +14,6 @@ public class TextyView extends JFrame {
     
     private final TextyView textyView;
     
-    // Access to gui windows
-    protected TextyView.SaveAnywayWin saveAnywayWin;
-    
     // Menu Bar
     JMenuBar menuBar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
@@ -145,45 +142,6 @@ public class TextyView extends JFrame {
             }
         });
         
-    }
-
-    protected class SaveAnywayWin extends JFrame {    
-        String fullFilepath;
-        
-        private final JPanel northPanel = new JPanel();
-        private final JPanel southPanel = new JPanel();
-        private final JLabel alreadyExists;
-        
-        protected SaveAnywayWin(String filepath, String filename) {
-            super("File Already Exists");
-            textyView.setEnabled(false);
-            
-            setLocationRelativeTo(null);
-            
-            fullFilepath = filepath + filename;
-            alreadyExists = new JLabel("File: \"" + fullFilepath + "\" already exists. Save anyway?");
-            
-            textyView.saveAnywayBtn.setActionCommand("SaveAnyway");
-            textyView.saveAnywayCancelBtn.setActionCommand("CancelSaveAnyway");
-            
-            northPanel.add(alreadyExists);
-            southPanel.add(textyView.saveAnywayBtn);
-            southPanel.add(textyView.saveAnywayCancelBtn);
-            add(northPanel, BorderLayout.NORTH);
-            add(southPanel, BorderLayout.SOUTH);
-            pack();
-            
-            setVisible(true);
-            setResizable(false);
-            
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    TextyHelper.closeWindow(saveAnywayWin, textyView); // remove resource
-                }
-            });
-            
-        }
     }
     
 }

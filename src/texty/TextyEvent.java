@@ -129,26 +129,12 @@ public class TextyEvent {
                         textyModel.fileIsNew = false;
                         saveFile = fc.getSelectedFile();
                         if(saveFile.exists()) {
-                            textyView.saveAnywayWin = textyView.new SaveAnywayWin(TextyHelper.getFixedPath(saveFile.getAbsolutePath()), saveFile.getName());
+                            saveExistingFile(saveFile);
                         }
                         else {
                             saveFile(saveFile);
                         }
                     }
-                    break;
-                case "SaveAnyway":
-                    textyModel.fileIsNew = false;
-                    TextyHelper.closeWindow(textyView.saveAnywayWin, textyView);
-                    fullFilepath = TextyHelper.getFixedPath(textyModel.getFilepath()) + textyModel.getFilename();
-                    saveFile = new File(fullFilepath);
-                    if(saveFile(saveFile)) {
-                        textyView.setTitle("Texty - " + textyModel.getFilename());
-                        TextyModel.globalFilepath = textyModel.getFilepath();
-                    }
-                    break;
-                case "CancelSaveAnyway":
-                    TextyHelper.closeWindow(textyView.saveAnywayWin, textyView);
-                    textyModel.fileIsNew = true;
                     break;
             }
         }
@@ -533,21 +519,6 @@ public class TextyEvent {
     public boolean saveFile(File saveFile) {        
         boolean saveSuccess = false;
         
-        String filepath;
-        String filename = saveFile.getName();
-        String fileExt = TextyHelper.getFileExtension(filename);
-        
-        if(fileExt.equals("")) { // check and fix file extension
-            fileExt = "txt";
-            filename += ".txt";
-            saveFile = new File(saveFile.getParentFile(), filename);
-            filepath = TextyHelper.getFixedPath(saveFile.getAbsolutePath());
-            try { textyModel.setFilepath(filepath); textyModel.setFilename(filename); } catch(Exception e) {}
-        }
-        else {
-            filepath = TextyHelper.getFixedPath(saveFile.getAbsolutePath());
-        }
-        
         if(textyModel.fileIsNew) { // check if first ever save
             JFileChooser fc = new JFileChooser(TextyModel.globalFilepath);
             fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -560,6 +531,21 @@ public class TextyEvent {
             }
         }
         else {
+            
+            String filepath;
+            String filename = saveFile.getName();
+            String fileExt = TextyHelper.getFileExtension(filename);
+
+            if(fileExt.equals("")) { // check and fix file extension
+                fileExt = "txt";
+                filename += ".txt";
+                saveFile = new File(saveFile.getParentFile(), filename);
+                filepath = TextyHelper.getFixedPath(saveFile.getAbsolutePath());
+                try { textyModel.setFilepath(filepath); textyModel.setFilename(filename); } catch(Exception e) {}
+            }
+            else {
+                filepath = TextyHelper.getFixedPath(saveFile.getAbsolutePath());
+            }
             
             try(BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(saveFile))) {
                 if(!saveFile.exists()) {
@@ -591,28 +577,37 @@ public class TextyEvent {
         return saveSuccess;
     }
     
+    private void saveExistingFile(File saveFile) {
+        try {
+            String filepath = TextyHelper.getFixedPath(saveFile.getAbsolutePath());
+            String filename = saveFile.getName();
+            String fullFilepath = filepath + filename;
+
+            int confirm = JOptionPane.showConfirmDialog(null, "File: \"" + fullFilepath + "\" already exists. Save anyway?", "Save - File Exists", JOptionPane.YES_NO_OPTION);
+            if(confirm == JOptionPane.YES_OPTION) {
+                textyModel.setFilepath(filepath);
+                textyModel.setFilename(filename);
+                textyModel.fileIsNew = false;
+                saveFile(saveFile);
+            }
+        } catch(Exception e) {
+            JOptionPane.showMessageDialog(textyView, "File was not saved! " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
     private void saveNewFile(File saveFile) {
         try {
             String filepath = TextyHelper.getFixedPath(saveFile.getAbsolutePath());
             String filename = saveFile.getName();
             
             if(saveFile.exists()) {
-                textyView.saveAnywayWin = textyView.new SaveAnywayWin(filepath, filename);
+                saveExistingFile(saveFile);
             }
             else {
-                String oldFilepath = textyModel.getFilepath();
-                String oldFilename = textyModel.getFilename();
                 textyModel.setFilepath(filepath);
                 textyModel.setFilename(filename);
-
                 textyModel.fileIsNew = false;
-
-                if(saveFile(saveFile));
-                else {
-                    textyModel.fileIsNew = true;
-                    textyModel.setFilepath(oldFilepath);
-                    textyModel.setFilename(oldFilename);
-                }
+                saveFile(saveFile);
             }
 
         } catch(Exception e) {
